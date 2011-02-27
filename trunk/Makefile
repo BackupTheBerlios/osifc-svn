@@ -60,8 +60,8 @@ SRC =
  SRCARM += interface/command.c io/uartisr.c arch/led.c io/pwmin.c arch/init.c io/io.c io/spi.c 
  SRCARM += io/output.c arch/iapcore.c math/pidfc.c math/pdfc.c fc/osifc.c
  SRCARM += io/compass.c io/pwmout.c io/engines.c
- SRCARM += arch/beeper.c nav/NMEAparser.c nav/osigps.c nav/ubxparser.c nav/mm3parser.c
-  SRCARM += interface/rcui.c interface/serialui.c
+ SRCARM += arch/beeper.c nav/NMEAparser.c nav/osigps.c nav/ubxparser.c nav/mm3parser.c nav/navcomp.c
+ SRCARM += interface/rcui.c interface/serialui.c
 
 # List Assembler source files here which must be assembled in ARM-Mode..
 ASRCARM  = build/crt0.S

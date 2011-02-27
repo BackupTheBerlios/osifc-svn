@@ -68,7 +68,7 @@ float servoTeiler = 1.375;
 
 
 
-void init_PWMOutChannels(void)
+void PWMOUT_init_OutChannels(void)
 {
 	PINSEL3 |= (0<<4)	|(1<<5);  	//PWM1.1		//nick servo		P1.18
 	PINSEL7 |= (1<<18)	|(1<<19); 	//PWM1.2		//roll servo		P3.25
@@ -128,7 +128,7 @@ void init_PWMOutChannels(void)
 }
 
 
-void initCamServos(void)
+void PWMOUT_init_Cam_Servos(void)
 {
 	if(fcSetup.nickServoInvert == 1)
 	{
@@ -189,7 +189,7 @@ volatile int PWMNickTemp = 0;
 volatile signed int servoNick;
 volatile signed int servoRoll;
 
-void setCamServos(void)
+void PWMOUT_set_Cam_Servos(void)
 {
 
 	if (++myservoCount <= servoCountMax) {

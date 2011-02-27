@@ -43,7 +43,7 @@
 #define MM3_PERIOD_4096 0x70
 
 //toDo make this a setting
-#define MM3_PS	MM3_PERIOD_2048 //MM3 Period select to select how many ticks to count during measurement
+#define MM3_PS	MM3_PERIOD_1024 //MM3 Period select to select how many ticks to count during measurement
 								//2048 is the largest value safe not to count till overflow
 
 //states for MM3

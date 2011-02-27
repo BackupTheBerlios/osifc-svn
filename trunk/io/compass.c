@@ -63,7 +63,7 @@ void setHMC5843Continous(void)
 	HMCBuffer[2] = 0x00;
 	setI2CRlWl(0,2);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 void setHMC5843Rate(void)
@@ -74,7 +74,7 @@ void setHMC5843Rate(void)
 	HMCBuffer[2] = 0x4;
 	setI2CRlWl(0,2);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 void setHMC5843Gain(void)
@@ -85,7 +85,7 @@ void setHMC5843Gain(void)
 	HMCBuffer[2] = 0x07;
 	setI2CRlWl(0,2);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 
@@ -96,7 +96,7 @@ void initialreadHMC5843(void)
 	HMCBuffer[0] = 0x3D;
 	setI2CRlWl(6,0);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 void readHMC5843(void)
@@ -104,7 +104,7 @@ void readHMC5843(void)
 	HMCBuffer[0] = 0x3D;
 	setI2CRlWl(6,0);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 	led_switch(1);
 }
 
@@ -152,7 +152,7 @@ void initHMC6343(void)
 	setI2CRlWl(0,1);
 	initI2CRdWr();
 	led_switch(3);
-	I2C1Start();
+	I2C1_Start();
 }
 
 void readHMC6343(void)
@@ -160,7 +160,7 @@ void readHMC6343(void)
 	HMCBuffer[0] = 0x33;
 	setI2CRlWl(6,0);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 	led_switch(2);
 }
 

@@ -47,7 +47,7 @@
 
 #include "fc/osifc.h"
 #include "nav/mm3parser.h"
-
+#include "nav/navcomp.h"
 #include "interface/command.h"
 
 static int RTCinit = 0;
@@ -395,7 +395,7 @@ void init_PWM(void)
 		//P2.6 to Capture
 		//P2.2 to Capture MM3 DRDY
 		IO2_INT_EN_R |= pwmin0_BIT | DRDY_PIN;
-		VICVectAddr17     = (unsigned long)pwmin_MC_ISR;
+		VICVectAddr17     = (unsigned long)PWMIN_MC_ISR;
 	break;
 	case PWM_SC:
 		//Capture
@@ -406,7 +406,7 @@ void init_PWM(void)
 		//Interrupt at rising edge
 		IO0_INT_EN_R |= 0x00078070;
 		IO2_INT_EN_R |= 0x000000A4;
-		VICVectAddr17     = (unsigned long)pwmin_SC_ISR;
+		VICVectAddr17     = (unsigned long)PWMIN_SC_ISR;
 	break;
     }
 
@@ -457,15 +457,28 @@ void init_uart(void)
 void init_RTC(void)
 {
 	RTC_CTCReset();
-	RTCInit();
-	RTCStart();
+	RTC_Init();
+	RTC_Start();
 }
 
 void init_MM3(void)
 {
+
+	// Values for Testing
+	sysSetup.MM3.X_range = 1357;
+	sysSetup.MM3.Y_range = 1546;
+	sysSetup.MM3.Z_range = 1372;
+
+	sysSetup.MM3.X_off = -51;
+	sysSetup.MM3.Y_off = 39;
+	sysSetup.MM3.Z_off = -56;
+
+	setCompassStatus(1);
+	setCompassBusy(0);
+
 	//IO1(RESET) and IO0 (SSNOT) as out
-	ioInit0();			//SlaveSelect
-	ioInit1();			//Reset
+	IO_Init0();			//SlaveSelect
+	IO_Init1();			//Reset
 
 	IO0_ON;				//IO0 (SSNOT) auf High -> MM3 passive
 	IO1_OFF;			//IO1 (RESET) auf Low
@@ -497,7 +510,7 @@ void init_system(void)
 
 	print_uart0("FCm0;starting secondary systems;00#");
 
-	enginesOff();						  	//set engines to 0 PWM
+	engines_Off();						  	//set engines to 0 PWM
 
 	initSettings();						  	//load the settings from flash to ram
 
@@ -512,14 +525,14 @@ void init_system(void)
 
 
 
-	I2C0Init();						  	 	//init I2C0 Port (Engines)
-	I2C0Start();
+	I2C0_Init();						  	 	//init I2C0 Port (Engines)
+	I2C0_Start();
 
-	I2C1Init();								//init I2C1 Port DAC
-	I2C1Start();
+	I2C1_Init();								//init I2C1 Port DAC
+	I2C1_Start();
 
-	//I2C2Init();						 	//not yet in use
-	//I2C2Start();
+	//I2C2_Init();						 	//not yet in use
+	//I2C2_Start();
 
 
 
@@ -538,10 +551,10 @@ void init_system(void)
 
 
 
-	initPWMvars();
+	PWMIN_Init_Vars();
 	init_PWM();
-	initCamServos();
-	init_PWMOutChannels();					//init the PWM out Pins
+	PWMOUT_init_Cam_Servos();
+	PWMOUT_init_OutChannels();					//init the PWM out Pins
 
 
 
@@ -576,7 +589,7 @@ void init_system(void)
 	//print_uart0("FCm0;read HMC;00#");
 	//initialreadHMC5843();
 
-	I2C1Stop();
+	I2C1_Stop();
 	LED1_ON;
 
 

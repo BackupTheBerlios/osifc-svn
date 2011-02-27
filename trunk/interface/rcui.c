@@ -48,7 +48,7 @@ char rcSetting;
 void offFlightRcUI(void) {
 
 
-	enginesOff();
+	engines_Off();
 	engineStatus = ENGINE_OFF;
 
 	if((PWM_channel[PWM_THROTTLE] >= FULL_UP) && PWM_channel[PWM_G] <= FULL_RIGHT) {
@@ -116,10 +116,12 @@ void offFlightRcUI(void) {
 // Different inflight rcUI to make sure the code never mixes up and does some off flight commands
 void inFlightRcUI(void) {
 
+	//PWM_channel[PWM_THROTTLE] = 15;
+
 	//if Gas < -100
 	//Wait for Gas to raise until then keep the Engines turning
 	if (PWM_channel[PWM_THROTTLE] <= FULL_DOWN)	{
-		engineWarmup();
+		engine_Warmup();
 	}
 	//start the math as we got Gas signal
 	if (PWM_channel[PWM_THROTTLE] >= FULL_DOWN)
@@ -138,7 +140,7 @@ void inFlightRcUI(void) {
 	//Wait to stop Engines
 	if((PWM_channel[PWM_THROTTLE] <= FULL_DOWN) && PWM_channel[PWM_G] >= FULL_LEFT)
 	{
-		enginesOff();
+		engines_Off();
 		engineStatus = ENGINE_OFF;
 		initFCRuntime();
 		LED1_OFF;

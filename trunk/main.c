@@ -44,16 +44,17 @@
 
 #include "nav/NMEAparser.h"
 #include "nav/mm3parser.h"
-
+#include "nav/navcomp.h"
 #include "version.h"
 
+int maxCycle = 1000;
+int minCycle = 700;
 
 char led2Status;
-RTCTime current_time;
+RTCTime currentTime;
 
 int adcRead = 0;
 int compassRead = 0;
-
 
 //QuadCopt
 int main(void)
@@ -74,83 +75,73 @@ int main(void)
 
 
 
-	print_uart0("FCm0;OsiFC v0.%d successful started;00#",VERSION);
+	print_uart0("FCm0;OsiFC v0.2.%d successful started;00#",VERSION);
 
 	I2C0Mode = I2CMODE_FLIGHTMODE;
 	I2C0State = 0;
-	//I2C0Start();
+	//I2C0_Start();
 	//parseMM3();
+
+	fcSetup.components[gpsComponent] = 1;
+	fcSetup.components[compassComponent] = 1;
 
 	while(1){
 
-		/*
-		if (countComponentCheck++ > sysSetup.CYCLE.componentCycle) {
-			//components enabled ?
-			if (fcSetup.components[2] == 1) {
-				if (navSol.packetStatus == 1 && PWM_channel[PWM_POTI1] > 80) {
-					if (led2Status == 1) {
-						LED2_OFF;
-						led2Status = 0;
-					} else {
-						LED2_ON;
-						led2Status = 1;
-					}
-					navSol.packetStatus = 0;
-				} else {
-					LED2_OFF;
-					led2Status = 0;
-				}
-
-			}
-
-			//compass enabled ?
-
-			countComponentCheck = 0;
-		}
-		*/
 
 		if (adcRead++ > adcRate) {
 				ReadADC();
 				adcRead = 0;
-
 		}
-
-
 
 		if (countToCalc++ > sysSetup.CYCLE.calcCycle) {
 			countToCalc = 0;
 			CycleCount++;
 
 			if (servoCount++ > 13){
-				setCamServos();
+				PWMOUT_set_Cam_Servos();
 				servoCount = 0;
 			}
 			checkUBat();
 
-			if (compassRead++ > 60) {
-				compassRead = 0;
-				parseMM3();
-				//
-				//if (NMEAdone == 1)
-				//	NMEAdone = 0;
-				//readHMC5843();
-				//heading = calcHeading(HMC_runtime.X_axis,HMC_runtime.Y_axis,HMC_runtime.Z_axis);
+			if (fcSetup.components[compassComponent] == 1) {
+				if (compassRead++ > 90) {
+					compassRead = 0;
+
+					if (getCompassStatus() == 1 && getCompassBusy() == 0) {
+						parseMM3();
+					}
+
+					//
+					//if (NMEAdone == 1)
+					//	NMEAdone = 0;
+					//readHMC5843();
+					//heading = calcHeading(HMC_runtime.X_axis,HMC_runtime.Y_axis,HMC_runtime.Z_axis);
+				}
 			}
 
-
-			//print telemtrie ?
+			//print telemetrie ?
 			if(printCount++ > sysSetup.CYCLE.telemetrieCycle && sysSetup.CYCLE.telemetrieCycle != 0) {
 				printTelemetrie();
 				printCount = 0;
 			}
 
-			current_time = RTCGetTime();
-			if (current_time.RTC_Sec != oldSec) {
+			currentTime = RTC_Get_Time();
+			if (currentTime.RTC_Sec != oldSec) {
 				I2C1Mode = 0;
 				adjustSensorDrift();
 				lastCycleCount = (int)CycleCount;
 				CycleCount = 0;
-				oldSec = current_time.RTC_Sec;
+				oldSec = currentTime.RTC_Sec;
+
+				// check if we run within speed limits and adjust if needed
+				if (lastCycleCount > maxCycle)
+				{
+					sysSetup.CYCLE.calcCycle++;
+				} else {
+					if (lastCycleCount < minCycle) {
+						sysSetup.CYCLE.calcCycle--;
+					}
+				}
 			}
 
 			//the serial user interface always active
@@ -169,7 +160,8 @@ int main(void)
 				//check the in flight RC UI
 				inFlightRcUI();				//the RC UI for in flight
 			}
-			I2C0Start();
+			//inFlightRcUI();
+			I2C0_Start();
 		}
 	}
 

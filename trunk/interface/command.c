@@ -56,10 +56,10 @@ void updateAcdRate(void) {
 void checkI2C(void) {
 
 	if (I2C0Mode == I2CMODE_WRITEADDRESS){
-		I2C0Start();
+		I2C0_Start();
 	}
 	if (I2C0Mode == I2CMODE_READADDRESS){
-		I2C0Start();
+		I2C0_Start();
 	}
 
 }
@@ -180,7 +180,7 @@ void checkSerialIn (unsigned char c){
 				ygeTargetAdress = c;
 				updateYGE = 0;
 				I2CcmdType = I2CMODE_WRITEADDRESS;
-				I2C0Stop();
+				I2C0_Stop();
 				cmdState = SET_STOP;
 			break;
 			case YGE_START_TARGET:

@@ -64,7 +64,7 @@ void serialUI(void) {
 
 			if (setCmd == 1) {
 				print_uart0("FCm0;flashing settings;00#");	//here we write all the settings from ram to flash
-				enginesOff(); 								//this is to save some of the flashing cycles.
+				engines_Off(); 								//this is to save some of the flashing cycles.
 				led_switch(3);								//we could flash with any retrieved setting but that
 				engineStatus = 0;							//just helps abusing the flash cycles so its a manual
 															//step to really save to flash
@@ -92,17 +92,17 @@ void serialUI(void) {
 					I2C0Mode = I2CMODE_WRITEADDRESS;
 					I2C0State = 0;
 					updateYGE = 1;
-					I2C0Start();
+					I2C0_Start();
 				}
 			}
 
 			if (I2CcmdType == I2CMODE_STARTUP_TARGET){
 				if (updateYGE == 0) {
-					I2C0Stop();
+					I2C0_Stop();
 					I2C0Mode = I2CMODE_WRITEADDRESS;
 					I2C0State = 0;
 					updateYGE = 1;
-					I2C0Start();
+					I2C0_Start();
 				}
 			}
 			commandRetrived = 0;

@@ -159,7 +159,7 @@ void ADCGyroSetup(int ADCChannel)
 		ADC_offset[ADCChannel]--;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<1000;tmp++){asm("nop");};
 			ReadADC();
@@ -177,7 +177,7 @@ void ADCGyroSetup(int ADCChannel)
 		ADC_offset[ADCChannel]++;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<1000;tmp++){asm("nop");};
 			ReadADC();
@@ -191,7 +191,7 @@ void ADCGyroSetup(int ADCChannel)
 
 	}
 	for(tmp = 0;tmp<10000;tmp++){asm("nop");};
-	I2C1Stop();
+	I2C1_Stop();
 }
 
 
@@ -207,7 +207,7 @@ void ADCPressureSetup(int ADCChannel)
 	ADC_offset[ADCChannel] = 200;
 	I2C1State = 0;
 	I2C1Mode = 0;
-	I2C1Start();
+	I2C1_Start();
 
 
 	while (ADCTemp < 1000)
@@ -215,7 +215,7 @@ void ADCPressureSetup(int ADCChannel)
 		ADC_offset[ADCChannel]--;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<10000;tmp++){asm("nop");};
 			ReadADC();
@@ -234,7 +234,7 @@ void ADCPressureSetup(int ADCChannel)
 		ADC_offset[ADCChannel]++;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<10000;tmp++){asm("nop");};
 			ReadADC();
@@ -249,7 +249,7 @@ void ADCPressureSetup(int ADCChannel)
 
 	print_uart0("FCm0;ADC offset Low %d = %d value %d;00#",ADCChannel,ADC_offset[ADCChannel],ADCTemp);
 	for(tmp = 0;tmp<100000;tmp++){asm("nop");};
-	I2C1Stop();
+	I2C1_Stop();
 }
 
 void GyroInit(void)
