@@ -69,8 +69,7 @@ signed int atan2_i(signed int x, signed int y)
 
 	if (!x && !y) return 0;		//atan2 = 0 für x und y = 0
 
-	if (y < 0)
-		m = -1;
+	if (y < 0) m=-1;
 	else m=1;
 
 	if (!x) return (90*m);		//atan2 = 90° für x = 0
@@ -89,7 +88,7 @@ signed int atan2_i(signed int x, signed int y)
 		yy = y;
 	}
 
-	i = (unsigned int)((yy*64) / xx);		//Berechne i für die Lookup table (Schrittweite atan(x) ist 0,015625 -> y *64)
+	i = (signed int)((yy*64) / xx);		//Berechne i für die Lookup table (Schrittweite atan(x) ist 0,015625 -> y *64)
 
 	//print_uart0("atan i %d %d %d %d					;00#",i,m,x,y);
 
@@ -108,32 +107,10 @@ signed int atan2_i(signed int x, signed int y)
 
 
 	//print_uart0(" A%d; i%d; ",angle,i );
-	//return angle;
-	if (x > 0)
-		{
-		if (y > 0) {
-			//print_uart0(" Q4 ");
-			angle = (angle*m)*-1;	//Quadrant I und IV
-		} else {
-			//print_uart0(" Q1 ");
-			angle = (angle*m)*-1;	//Quadrant I und IV
-		}
-
-		} else {
-
-			if ((x < 0) && (y > 0)) {
-				//print_uart0(" Q2 ");
-				angle = (360 - angle);	//Quadrant II
-			} else {
-				if ((x < 0) && (y < 0)) {
-			//print_uart0(" Q3 ");
-			//angle = (angle - 180); //x < 0 && y < 0	Quadrant III
-				}
-		}
-	}
-
 	return angle;
-	return ((540 + angle) % 360) - 180;
+	if (x > 0) return (angle*m);	//Quadrant I und IV
+	else if ((x < 0) && (m > 0)) return (1360 - angle);	//Quadrant II
+	else return (angle - 5180); //x < 0 && y < 0	Quadrant III
 }
 
 

@@ -25,35 +25,9 @@
 
 
 */
-
-/*
- *
-http://www.ngdc.noaa.gov/geomagmodels/struts/IgrfWmmLocationSwitch
-
-Something about declination. toDo: need to understand this thing
-if important build fetch via Internet to get local data
-
-Declination		Inclination	Horizontal 		Intensity		North Component	East Component	Vertical Component	Total Field
-+ East - West	+ Down - Up									+ North - South	+ East - West	+ Down - Up
-
-1/25/2011 		1° 26' 		63° 19' 		21,446.2 nT 	21,439.5 nT 	537.4 nT 		42,667.7 nT 		47,754.3 nT
-Change per year 8' per year - 0' per year 	13.4 nT/year 	12.1 nT/year 	47.7 nT/year 	20.6 nT/year 		24.4 nT/year
- *
- *
- *
- *
- */
-
-
-
-
-
-
-
-
 #include "math.h"
 #include "nav/mm3parser.h"
-#include "nav/navcomp.h"
+
 #include "arch/settings.h"
 #include "arch/analog.h"
 #include "arch/led.h"
@@ -68,7 +42,7 @@ signed char MM3_LB;
 signed char MM3_HB;
 int delayCycleCount = 0;
 
-float sin_acc_roll, cos_acc_roll, sin_acc_nick, cos_acc_nick;
+signed int sin_acc_roll, cos_acc_roll, sin_acc_nick, cos_acc_nick;
 signed int tmpTilt = 0;
 signed int  X_heading = 0;
 signed int  Y_heading = 0;
@@ -86,7 +60,7 @@ void parseMM3 (void)
 	case MM3_RESET:
 
 		IO0_OFF;	//MM3 aktiv
-		IO1_ON;		//MM3 Reset (rising edge)
+		IO1_ON;		//MM3 Reset rising edge
 
 		MM3_runtime.STATE = MM3_START_TRANSFER;
 	return;
@@ -95,8 +69,7 @@ void parseMM3 (void)
 
 		//if (delayCycleCount++ > MM3_resetDelayCycles)
 		//{
-		setCompassBusy(1);
-		setCompassStatus(0);
+
 			IO1_OFF;//set IO1 to low this should be the falling edge of the reset pulse
 					//maybe there needs to be some pause...
 
@@ -167,25 +140,22 @@ void parseMM3 (void)
 			switch (MM3_runtime.AXIS)
 			{
 				case MM3_X:
-					MM3_runtime.X_axis = value;
+					MM3_runtime.X_axis = value;//-sysSetup.MM3.X_off;
 					MM3_runtime.AXIS = MM3_Y;
 				break;
 				case MM3_Y:
-					MM3_runtime.Y_axis = value;
+					MM3_runtime.Y_axis = value;//-sysSetup.MM3.Y_off;
 					MM3_runtime.AXIS = MM3_Z;
 				break;
 				case MM3_Z:	//case MM3_Z:
-					MM3_runtime.Z_axis = value;
-					MM3_runtime.roll = (signed int)((ADC_standStill[ADC_ACCY] - ADC_runtime[ADC_ACCY])/48);
-					MM3_runtime.nick = (signed int)((ADC_standStill[ADC_ACCX] - ADC_runtime[ADC_ACCX])/48);
+					MM3_runtime.Z_axis = value;//-sysSetup.MM3.Z_off;
+					MM3_runtime.roll = (signed int)((ADC_standStill[ADC_ACCY] - ADC_runtime[ADC_ACCY]));
+					MM3_runtime.nick = (signed int)((ADC_standStill[ADC_ACCX] - ADC_runtime[ADC_ACCX]));
 					mm3calcHeading();
-
 					MM3_runtime.AXIS = MM3_X;
 				break;
 
 			}
-			setCompassStatus(1);
-			setCompassBusy(0);
 			IO0_ON;	//MM3 passive
 			IO1_OFF;//IO1 low
 			MM3_runtime.STATE = MM3_RESET;
@@ -232,7 +202,7 @@ void calib_MM3(void)
 		//calibration stops when taking back throttle
 		if (PWM_channel[PWM_THROTTLE] < 100) calib = 0;
 	}
-/*
+
 	sysSetup.MM3.X_range = (X_Max - X_Min);
 	sysSetup.MM3.Y_range = (Y_Max - Y_Min);
 	sysSetup.MM3.Z_range = (z_Max - z_Min);
@@ -240,98 +210,46 @@ void calib_MM3(void)
 	sysSetup.MM3.X_off = (X_Max + X_Min) / 2;
 	sysSetup.MM3.Y_off = (Y_Max + Y_Min) / 2;
 	sysSetup.MM3.Z_off = (z_Max + z_Min) / 2;
-	*/
-
-
 	LED4_OFF;
 }
 
-/*void mm3calcHeading(void)
-{
-	 MM3_runtime.heading = 0 ;
-	  if((MM3_runtime.X_axis == 0)&&(MM3_runtime.Y_axis < 0))
-		  MM3_runtime.heading= PI/2.0;
-	  if((MM3_runtime.X_axis == 0)&&(MM3_runtime.Y_axis > 0))
-		  MM3_runtime.heading=3.0*PI/2.0;
-	  if (MM3_runtime.X_axis < 0)
-		  MM3_runtime.heading = PI - atan(MM3_runtime.Y_axis/MM3_runtime.X_axis);
-	  if((MM3_runtime.X_axis > 0)&&(MM3_runtime.Y_axis < 0))
-		  MM3_runtime.heading = -atan(MM3_runtime.Y_axis/MM3_runtime.X_axis);
-	  if((MM3_runtime.X_axis > 0)&&(MM3_runtime.Y_axis > 0))
-		  MM3_runtime.heading = 2.0*PI - atan(MM3_runtime.Y_axis/MM3_runtime.X_axis);
 
-
-}
-*/
-
-float threePI = 3.0*PI/2.0;
-float PIdiv = PI/2.0;
 void mm3calcHeading(void)
 {
 
-	float compassHeading = 0;
-
-	//int temp = Aktuell_az - acc_neutral.compass;
-	//	//Lage-Berechnung mittels Acc-Messwerte
-	//	//tilt = atan2_i(temp,AdWertAccNick*64);
+	signed int compassHeading = 0;
 
 	sin_acc_nick = ((sin_i(MM3_runtime.nick)));
 	cos_acc_nick = ((cos_i(MM3_runtime.nick)));
 	sin_acc_roll = ((sin_i(MM3_runtime.roll)));
 	cos_acc_roll = ((cos_i(MM3_runtime.roll)));
 
+	//print_uart0(" nick%d; roll%d;sin%d;cos%d;  ",MM3_runtime.nick,MM3_runtime.roll,(int)(sin_acc_nick),(int)(cos_acc_nick));
 
-	//nickgrad = -(IntegralNick / 1540);
-	//rollgrad = -(IntegralRoll / 1540);
+	X_heading = 	  (MM3_runtime.X_axis * cos_acc_nick/1000)
+					- (((MM3_runtime.Y_axis * sin_acc_roll/1000) 	- (MM3_runtime.Z_axis * cos_acc_roll/1000)) * sin_acc_nick/1000)
+					;
 
-	//print_uart0(" n%d; r%d;s%d;c%d;s%d;c%d;",MM3_runtime.nick,MM3_runtime.roll,(int)(sin_acc_nick),(int)(cos_acc_nick),(int)(sin_acc_roll),(int)(cos_acc_roll));
+	Y_heading = 	  (MM3_runtime.Y_axis * cos_acc_roll/1000)
+					+ (MM3_runtime.Z_axis * sin_acc_roll/1000)
+					;
 
-	X_heading = 0;
-	Y_heading = 0;
+	compassHeading = atan2_i(X_heading,Y_heading); //result;//(result*180.0)/PI;
 
-	signed int x_axis = MM3_runtime.X_axis - sysSetup.MM3.X_off;
-	signed int y_axis = MM3_runtime.Y_axis - sysSetup.MM3.Y_off;
-	signed int z_axis = MM3_runtime.Z_axis - sysSetup.MM3.Z_off;
+	if (compassHeading < 0) {
+		compassHeading = compassHeading +180;
+	}
+	/* else {
+		compassHeading = 360 + compassHeading;
+	}*/
 
+	if (compassHeading > 360) {
+		compassHeading = 360;
+	}
 
-	if( sysSetup.MM3.X_range > sysSetup.MM3.Y_range )
-		y_axis = (y_axis*sysSetup.MM3.X_range)/sysSetup.MM3.Y_range; // perform gain matching
-	else
-		x_axis = (x_axis*sysSetup.MM3.Y_range)/sysSetup.MM3.X_range; // perform gain matching
+	//print_uart0(" X%d; Y%d; H%d;  ;00#",X_heading,Y_heading,compassHeading );
 
-
-	float angle = atan(y_axis/x_axis); // compute the angle
-	angle = angle *180/PI;
-	/*
-	if( x_axis >=0 && y_axis >= 0 )
-		compassHeading = angle; // quadrant +X, +Y (0 to 90)
-	else if(x_axis < 0 && y_axis >= 0)
-		compassHeading = 180 - angle; // quadrant -X, +Y (91 to 180)
-	else if( x_axis < 0 && y_axis < 0 )
-		compassHeading = 180 + angle; // quadrant -X, -Y (181 to 270)
-	else if( x_axis >= 0 && y_axis < 0 )
-		compassHeading = 360 - angle; // quadrant +X, -Y (271 to 359)
-	*/
-
-	MM3_runtime.heading = (int)angle;
+	MM3_runtime.heading = (int)compassHeading;
 	//return (int)(compassHeading);
 }
 
-
-
-/*
-int getHeading(float x, float y, float z){
-  float heading=0;
-  if((x == 0)&&(y < 0))
-    heading= PI/2.0;
-  if((x == 0)&&(y > 0))
-    heading=3.0*PI/2.0;
-  if (x < 0)
-    heading = PI - atan(y/x);
-  if((x > 0)&&(y < 0))
-    heading = -atan(y/x);
-  if((x > 0)&&(y > 0))
-    heading = 2.0*PI - atan(y/x);
-  return  int(degrees(heading));
-}
-*/

@@ -28,7 +28,6 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "arch/settings.h"
 
 #include "nav/osiGPS.h"
 #include "nav/gps.h"
@@ -37,12 +36,9 @@
 #include "nav/ubxparser.h"
 #include "interface/command.h"
 
-
-#define NMEA 0
-#define UBX 1
-
 char GPStype = 0;
-
+const char NMEA = 0;
+const char UBX = 1;
 
 /* Here we do the GPS magic
  * GPS should become an AID for beginners or for making fotos.
@@ -65,16 +61,18 @@ void initGPS(void)
 // called from uart2 irq getting the received char c
 void parseGPS(unsigned char c)
 {
-	if (fcSetup.components[gpsComponent] == 1)
-	{
-		if(GPStype == NMEA) {
-			if (NMEAdone == 0)
-				parseNMEA(c);
 
-		} else {
-			if(GPStype == UBX) {
-				parseUBX(c);
-			}
+
+
+
+	if(GPStype == NMEA) {
+		if (NMEAdone == 0)
+			parseNMEA(c);
+
+	} else {
+		if(GPStype == UBX) {
+			parseUBX(c);
 		}
 	}
+
 }

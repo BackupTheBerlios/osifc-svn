@@ -109,22 +109,22 @@ volatile long I2CWrIndex;
 
 
 //I2C initialisieren
-void I2C0_Init 		(void);
-void I2C1_Init 		(void);
-void I2C2_Init 		(void);
+void I2C0Init 		(void);
+void I2C1Init 		(void);
+void I2C2Init 		(void);
 //Start I2C
-void I2C0_Start 		(void);
-void I2C1_Start 		(void);
-void I2C2_Start 		(void);
-void I2C1_ReStart	(void);
+void I2C0Start 		(void);
+void I2C1Start 		(void);
+void I2C2Start 		(void);
+void I2C1ReStart	(void);
 //Stop I2C
-void I2C0_Stop 		(void);
-void I2C1_Stop 		(void);
-void I2C2_Stop 		(void);
+void I2C0Stop 		(void);
+void I2C1Stop 		(void);
+void I2C2Stop 		(void);
 //1 Byte schreiben
-void I2C0_WriteChar 	(char byte);
-void I2C1_WriteChar 	(char byte);
-void I2C2_WriteChar 	(char byte);
+void I2C0WriteChar 	(char byte);
+void I2C1WriteChar 	(char byte);
+void I2C2WriteChar 	(char byte);
 
 
 void I2C1InitHMCMode(void);

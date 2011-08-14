@@ -175,9 +175,9 @@ void setFcSetupDefault(void)
 	setupCache.escBaseAdr 							= 0x52;
 	setupCache.escAdrHop 							= 2;
 	setupCache.AdcClockDiv							= 120;
-	setupCache.calcCycle							= 180;
+	setupCache.calcCycle							= 90;
 	setupCache.componentCycle						= 50;
-	setupCache.telemetrieCycle						= 0;
+	setupCache.telemetrieCycle						= 10;
 	setupCache.MaxMultichannel						= 7;
 	setupCache.MaxValue								= 30;
 	setupCache.MinValue								= 29;

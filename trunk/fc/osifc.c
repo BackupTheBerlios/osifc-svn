@@ -92,8 +92,8 @@ void initFCRuntime (void) {
 	Y_DifferenceFact = 0;
 	Engine_value = 0;
 
-	engines_Off();
-	PWMOUT_init_Cam_Servos();
+	enginesOff();
+	initCamServos();
 	commandRetrived = 0;
 	SettingsReceived = 0;
 

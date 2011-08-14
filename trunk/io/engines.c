@@ -33,7 +33,7 @@
 
 //-------------------------------------------------------------------------------
 //Stop Engines
-void engines_Off(void)
+void enginesOff(void)
 {
 	PWMEngOut[FRONTENGINE] = 0;
 	PWMEngOut[RIGHTENGINE] = 0;
@@ -44,7 +44,7 @@ void engines_Off(void)
 
 //-------------------------------------------------------------------------------
 //Start Engines
-void engine_Warmup(void)
+void engineWarmup(void)
 {
 	PWMEngOut[LEFTENGINE]  = fcSetup.sysGasMin;
 	PWMEngOut[RIGHTENGINE] = fcSetup.sysGasMin;

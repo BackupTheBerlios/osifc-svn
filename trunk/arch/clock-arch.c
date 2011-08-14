@@ -154,7 +154,7 @@ void __attribute__ ((interrupt("IRQ"))) RTC_ISR (void)
 }
 
 
-void RTC_Init( void )
+void RTCInit( void )
 {
   alarm_on 			= 0;
   RTC_AMR 			= 0;
@@ -181,7 +181,7 @@ void RTC_Init( void )
 }
 
 
-void RTC_Start( void )
+void RTCStart( void )
 {
   //Start RTC counters
   RTC_CCR 			|= CCR_CLKEN;
@@ -189,7 +189,7 @@ void RTC_Start( void )
 }
 
 
-void RTC_Stop( void )
+void RTCStop( void )
 {
   //Stop RTC counters
   RTC_CCR 			&= ~CCR_CLKEN;
@@ -204,7 +204,7 @@ void RTC_CTCReset( void )
 }
 
 
-void RTC_Set_Time( RTCTime Time )
+void RTCSetTime( RTCTime Time )
 {
   RTC_SEC = Time.RTC_Sec;
   RTC_MIN = Time.RTC_Min;
@@ -216,7 +216,7 @@ void RTC_Set_Time( RTCTime Time )
   RTC_YEAR = Time.RTC_Year;
 }
 
-void RTC_Set_Alarm( RTCTime Alarm )
+void RTCSetAlarm( RTCTime Alarm )
 {
   RTC_ALSEC = Alarm.RTC_Sec;
   RTC_ALMIN = Alarm.RTC_Min;
@@ -229,7 +229,7 @@ void RTC_Set_Alarm( RTCTime Alarm )
 
 }
 
-RTCTime RTC_Get_Time( void )
+RTCTime RTCGetTime( void )
 {
   RTCTime LocalTime;
 
@@ -244,7 +244,7 @@ RTCTime RTC_Get_Time( void )
   return ( LocalTime );
 }
 
-void RTC_Set_Alarm_Mask( unsigned long AlarmMask )
+void RTCSetAlarmMask( unsigned long AlarmMask )
 {
   //Set alarm mask
   RTC_AMR = AlarmMask;

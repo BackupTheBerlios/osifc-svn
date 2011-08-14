@@ -31,8 +31,8 @@
 
 
 
-void PWMOUT_init_OutChannels(void);
-void PWMOUT_init_Cam_Servos(void);
-void PWMOUT_set_Cam_Servos(void);
+void init_PWMOutChannels(void);
+void initCamServos(void);
+void setCamServos(void);
 
 #endif /*PWMOUT_*/

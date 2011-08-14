@@ -29,9 +29,4 @@
 #define NAVCOMP_H_
 
 
-
-char getCompassStatus(void);
-void setCompassStatus(char);
-char getCompassBusy(void);
-void setCompassBusy(char);
 #endif /* NAVCOMP_H_ */

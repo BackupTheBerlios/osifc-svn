@@ -170,7 +170,7 @@ void printDebug1(void)
 	//return;
 	RTCTime current_time;
 
-	current_time = RTC_Get_Time();
+	current_time = RTCGetTime();
 
 	print_uart0("FCd1;");
 
@@ -217,7 +217,7 @@ void printDebug1(void)
 void printTelemetrie(void)
 {
 	RTCTime current_time;
-	current_time = RTC_Get_Time();
+	current_time = RTCGetTime();
 
 	print_uart0("FCt0;");
 	print_uart0("%d;%d;%d;",
@@ -235,7 +235,7 @@ void printTelemetrie(void)
 			(int)ADC_runtime[ADC_ACCY],
 			(int)ADC_runtime[ADC_ACCZ],
 			(int)ADC_runtime[AIRPRESSURE],
-			(int)(ADC_runtime[UBAT]/ubatDivider));
+			(int)(float)(ADC_runtime[UBAT]/ubatDivider));
 
 		print_uart0("%d;%d;%d;%d;",
 			(int)PWMEngOut[0],
@@ -266,7 +266,7 @@ void printDebug(void)
 	//return;
 	RTCTime current_time;
 
-		current_time = RTC_Get_Time();
+		current_time = RTCGetTime();
 
 		print_uart0("FCd0;");
 

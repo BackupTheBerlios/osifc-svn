@@ -30,6 +30,6 @@
 #define VERSION_H_
 
 
-#define VERSION 1
+#define VERSION 2
 
 #endif /*VERSION_H_*/

@@ -32,23 +32,23 @@
 
 
 
-void IO_Init0(void)
+void ioInit0(void)
 {
 	IO0_DIR |= IO0_BIT;
 }
-void IO_Init1(void)
+void ioInit1(void)
 {
 	IO1_DIR |= IO1_BIT;
 }
-void IO_Init2(void)
+void ioInit2(void)
 {
 	IO2_DIR |= IO2_BIT;
 }
-void IO_Init3(void)
+void ioInit3(void)
 {
 	IO3_DIR |= IO3_BIT;
 }
-void IO_Init4(void)
+void ioInit4(void)
 {
 	IO4_DIR |= IO4_BIT;
 }
