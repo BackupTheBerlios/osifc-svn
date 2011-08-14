@@ -1,5 +1,5 @@
 /*
-	file    nemaparser.h
+	file    NMEAparser.h
 	author  Werner Oswald
 	(c)		Werner Oswald
 	mail	osiair@osiworx.com
@@ -26,39 +26,40 @@
 
 */
 
-#ifndef NEMAPARSER_H_
-#define NEMAPARSER_H_
+#ifndef NMEAPARSER_H_
+#define NMEAPARSER_H_
 
-#define	NEMA_EMPTY					0
-#define	NEMA_SYNC1					1
-#define	NEMA_SYNC2					2
-#define	NEMA_SYNC3					3
-#define	NEMA_SYNC4					4
-#define	NEMA_SYNC5					5
-#define	NEMA_SYNC6					6
+#define	NMEA_EMPTY					0
+#define	NMEA_SYNC1					1
+#define	NMEA_SYNC2					2
+#define	NMEA_SYNC3					3
+#define	NMEA_SYNC4					4
+#define	NMEA_SYNC5					5
+#define	NMEA_SYNC6					6
 
-#define	NEMA_CLASS					7
-#define	NEMA_LEN1					8
-#define	NEMA_LEN2					9
-#define	NEMA_FILLING				10
-#define	NEMA_ENDC					11
-#define	NEMA_STOPL					12
-#define	NEMA_STOPH					13
+#define	NMEA_CLASS					7
+#define	NMEA_LEN1					8
+#define	NMEA_LEN2					9
+#define	NMEA_FILLING				10
+#define	NMEA_ENDC					11
+#define	NMEA_STOPL					12
+#define	NMEA_STOPH					13
 
-#define	NEMA_FILL_UTC					0
-#define	NEMA_FILL_LAT					1
-#define	NEMA_FILL_LON					2
-#define	NEMA_FILL_NORTH					3
-#define	NEMA_FILL_WEST					4
-#define	NEMA_FILL_GPSQ					5
-#define	NEMA_FILL_NUMSAT				6
-#define	NEMA_FILL_HDP					7
-#define	NEMA_FILL_ALT					8
-#define	NEMA_FILL_ALTM					9
-#define	NEMA_FILL_GEOS					10
-#define	NEMA_FILL_GEOSM					11
-#define	NEMA_FILL_DGAGE					12
-#define	NEMA_FILL_STID					13
+#define	NMEA_FILL_UTC					0
+#define	NMEA_FILL_LAT					1
+#define	NMEA_FILL_LON					2
+#define	NMEA_FILL_NORTH					3
+#define	NMEA_FILL_WEST					4
+#define	NMEA_FILL_GPSQ					5
+#define	NMEA_FILL_NUMSAT				6
+#define	NMEA_FILL_HDP					7
+#define	NMEA_FILL_ALT					8
+#define	NMEA_FILL_ALTM					9
+#define	NMEA_FILL_GEOS					10
+#define	NMEA_FILL_GEOSM					11
+#define	NMEA_FILL_DGAGE					12
+#define	NMEA_FILL_STID					13
+
 
 #define	STRING_VALUE_LENGTH				10
 
@@ -69,7 +70,8 @@
 
 
 
-typedef struct  {
+typedef struct __attribute__ ((__aligned__))
+{
 	float UTC;
 	float lat;
 	float lon;
@@ -86,23 +88,24 @@ typedef struct  {
 	long stationID;
 }GPGGA;
 
-typedef struct  {
+typedef struct __attribute__ ((__aligned__))
+{
 	char hh;
 	char mm;
 	char sec;
 	char ms;
 }GPGGAtime;
 
-GPGGAtime nemaGPGGAtime;
-GPGGA nemaGPGGA;
+GPGGAtime NMEAGPGGAtime;
+GPGGA NMEAGPGGA;
 
-char NEMAdone;
-
-
-void updateRTCtoNEMA(void);
-void updateNEMATime (void);
-void parseNEMA (unsigned char);
-void updateNEMA (void);
+char NMEAdone;
 
 
-#endif /* NEMAPARSER_H_ */
+void updateRTCtoNMEA(void);
+void updateNMEATime (void);
+void parseNMEA (unsigned char);
+void updateNMEA (void);
+
+
+#endif /* NMEAPARSER_H_ */
