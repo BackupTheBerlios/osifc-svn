@@ -30,7 +30,7 @@
 #ifndef IO_H
 #define IO_H
 
-#include "arch/lpc23xx.h"
+#include "../arch/lpc23xx.h"
 
 #define IO0_SET FIO1SET
 #define IO0_DIR FIO1DIR
@@ -87,10 +87,10 @@
 #define IO4_ON    IO1_SET |= IO4_BIT
 #define IO4_FLASH IO1_PIN ^= IO4_BIT;
 
-void ioInit0(void);
-void ioInit1(void);
-void ioInit2(void);
-void ioInit3(void);
-void ioInit4(void);
+void IO_Init0(void);
+void IO_Init1(void);
+void IO_Init2(void);
+void IO_Init3(void);
+void IO_Init4(void);
 
 #endif /*IO_H*/

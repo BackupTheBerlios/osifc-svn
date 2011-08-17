@@ -46,8 +46,8 @@ unsigned char engine;
 
 unsigned char PWMEngOut[4];
 
-void enginesOff(void);
-void engineWarmup(void);
+void engines_Off(void);
+void engine_Warmup(void);
 
 void setEngine(int myEngine,int value);
 

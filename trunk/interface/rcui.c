@@ -25,22 +25,24 @@
 
 
 */
+#include "rcui.h"
+#include "../arch/printf_p.h"
+#include "command.h"
+
+#include "../arch/settings.h"
+
+#include "../arch/beeper.h"
+#include "../arch/led.h"
+#include "../arch/analog.h"
 
 
-#include "arch/settings.h"
+#include "../io/output.h"
+#include "../io/pwmin.h"
+#include "../io/engines.h"
+#include "../math/pidfc.h"
+#include "../nav/mm3parser.h"
+#include "../fc/osifc.h"
 
-#include "arch/beeper.h"
-#include "arch/led.h"
-#include "arch/analog.h"
-#include "io/pwmin.h"
-#include "io/engines.h"
-#include "io/output.h"
-#include "math/pidfc.h"
-#include "math/pdfc.h"
-#include "nav/mm3parser.h"
-#include "fc/osifc.h"
-#include "interface/rcui.h"
-#include "interface/command.h"
 
 
 char rcSetting;
@@ -48,7 +50,7 @@ char rcSetting;
 void offFlightRcUI(void) {
 
 
-	enginesOff();
+	engines_Off();
 	engineStatus = ENGINE_OFF;
 
 	if((PWM_channel[PWM_THROTTLE] >= FULL_UP) && PWM_channel[PWM_G] <= FULL_RIGHT) {
@@ -116,10 +118,12 @@ void offFlightRcUI(void) {
 // Different inflight rcUI to make sure the code never mixes up and does some off flight commands
 void inFlightRcUI(void) {
 
+	//PWM_channel[PWM_THROTTLE] = 15;
+
 	//if Gas < -100
 	//Wait for Gas to raise until then keep the Engines turning
 	if (PWM_channel[PWM_THROTTLE] <= FULL_DOWN)	{
-		engineWarmup();
+		engine_Warmup();
 	}
 	//start the math as we got Gas signal
 	if (PWM_channel[PWM_THROTTLE] >= FULL_DOWN)
@@ -129,16 +133,12 @@ void inFlightRcUI(void) {
 			case PID_MODE:
 				pidDriver();
 			break;
-			case PD_Mode:
-				pdDriver();
-			break;
-
 		}
 	}
 	//Wait to stop Engines
 	if((PWM_channel[PWM_THROTTLE] <= FULL_DOWN) && PWM_channel[PWM_G] >= FULL_LEFT)
 	{
-		enginesOff();
+		engines_Off();
 		engineStatus = ENGINE_OFF;
 		initFCRuntime();
 		LED1_OFF;

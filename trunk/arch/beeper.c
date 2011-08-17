@@ -28,7 +28,7 @@
 #include "beeper.h"
 #include "analog.h"
 #include "settings.h"
-
+#include "../io/pwmin.h"
 unsigned char beepStatus 	= 0;
 unsigned int beepCount 		= 0;
 
@@ -62,9 +62,10 @@ void beepCountSetting(char setting)
 	for (setCount=0;setCount < setting + 1;setCount++)
 	{
 		BEEPER_ON;
-		for(unsigned int tmp = 0;tmp<1000000;tmp++){asm("nop");};
+		unsigned long tmp = 0;
+		for(tmp = 0;tmp<=1000000;tmp++){asm("nop");};
 		BEEPER_OFF;
-		for(unsigned int tmp = 0;tmp<1000000;tmp++){asm("nop");};
+		for(tmp = 0;tmp<1000000;tmp++){asm("nop");};
 	}
 	BEEPER_OFF;
 }

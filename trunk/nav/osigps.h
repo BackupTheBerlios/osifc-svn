@@ -30,20 +30,23 @@
 #ifndef OSI_GPS_H_
 #define OSI_GPS_H_
 
-typedef struct {
+typedef struct __attribute__ ((__aligned__))
+{
 	long longitude;
 	long latitude;
 	long altitude;
 	char status;
 }GPSPOS;
 
-typedef struct {
+typedef struct __attribute__ ((__aligned__))
+{
 	long longitude;
 	long latitude;
 	long altitude;
 }GPSPOSRUNTIME;
 
-typedef struct {
+typedef struct __attribute__ ((__aligned__))
+{
 	char GPS_USER_MODE;
 	char GPS_sensor_status;
 	char GPS_fiX_status;
@@ -79,7 +82,7 @@ GPSPOS targetPos;
 
 void initGPS(void);
 void parseGPS(unsigned char c);
-
+void checkGPSUart(void);
 
 
 #endif /*OSI_GPS_H_*/

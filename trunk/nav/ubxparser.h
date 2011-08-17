@@ -44,7 +44,8 @@
 #define	UBX_CKB						8
 
 
-typedef struct {
+typedef struct __attribute__ ((__aligned__))
+{
 	long			ITOW;		//time of week
 	long			Frac; 		//Nanoseconds remainder of rounded ms above, range -500000 .. 500000
 	short			week;  		//GPS week (GPS time)

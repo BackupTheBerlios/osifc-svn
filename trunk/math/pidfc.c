@@ -26,14 +26,17 @@
 
 */
 
+
 #include <stdlib.h>
-#include "arch/settings.h"
-#include "math/pidfc.h"
-#include "arch/led.h"
-#include "arch/analog.h"
-#include "io/pwmin.h"
-#include "io/engines.h"
-#include "io/output.h"
+#include "pidfc.h"
+#include "../arch/settings.h"
+
+#include "../arch/led.h"
+#include "../arch/analog.h"
+#include "../io/pwmin.h"
+#include "../io/engines.h"
+#include "../io/output.h"
+
 //#include "float.h"
 
 int throttle;
@@ -47,6 +50,7 @@ int X_Gyr_ACC_Difference_old = 0;
 int targetAlt = 0;
 int altActual;
 int baroChan = 5;
+signed int pitchCorrection = -1;
 
 void pidDriver (void)
 {
@@ -95,7 +99,7 @@ void pidDriver (void)
 
 //DifferencePitchFact = 0;
 //Pitch_Difference = 0;
-    //Normalize throttle value to get -120 -> 120 to 0 -> 255
+    //Normalize throttle value to get -120 -> 120 to 0 -> 240
     throttle = PWM_channel[PWM_THROTTLE] + fcSetup.pid_throttleOffset;
 
     if (fcSetup.components[airpressureComponent])
@@ -179,7 +183,7 @@ XStickLimiter = 0.0;
     //Roll D
     X_Response += (signed int)(fcSetup.pid_X_D * (X_DifferenceFact + X_Difference_old));
     //Roll Stick
-    X_Response -= (signed int)(fcSetup.pid_StickFact * PWM_channel[PWM_R]);
+    X_Response -= (signed int)(fcSetup.pid_RollStickFact * PWM_channel[PWM_R]);
 
 
     //save old value for D
@@ -236,7 +240,7 @@ YStickLimiter = 0;
 	//Nick D
 	Y_Response += (signed int)(fcSetup.pid_Y_D * (Y_DifferenceFact + Y_Difference_old));
 	//Nick Stick
-	Y_Response -= (signed int)(fcSetup.pid_StickFact * PWM_channel[PWM_N]);
+	Y_Response -= (signed int)(fcSetup.pid_NickStickFact * PWM_channel[PWM_N]);
 
 
 	//save old value for D
@@ -244,7 +248,7 @@ YStickLimiter = 0;
 
 
 	//set the engine values
-	int pitchFact = (int)(fcSetup.pid_X_PitchFact * Pitch_Difference + PitchLimiter);
+	signed int pitchFact = (int)((fcSetup.pid_X_PitchFact * Pitch_Difference) + PitchLimiter) * pitchCorrection;
 	Engine_value = (int)((throttle - X_Response) - pitchFact);
 	setEngine(RIGHTENGINE,Engine_value);
 	Engine_value = (int)((throttle + X_Response) - pitchFact);
@@ -254,7 +258,7 @@ YStickLimiter = 0;
 	//PWMEngOut[LEFTENGINE] = 0;
 
 
-	pitchFact = (int)(fcSetup.pid_Y_PitchFact * Pitch_Difference)- PitchLimiter;
+	pitchFact = (int)((fcSetup.pid_Y_PitchFact * Pitch_Difference)- PitchLimiter) * pitchCorrection;
 	Engine_value = (int)((throttle + Y_Response) + pitchFact);
 	setEngine(FRONTENGINE,Engine_value);
 	Engine_value = (int)((throttle - Y_Response) + pitchFact);

@@ -29,7 +29,8 @@
 #ifndef UART_H
 #define UART_H
 
-#include "arch/sys_config.h"
+#include "../arch/sys_config.h"
+#include "../arch/lpc_util_defs.h"
 
 #define BTDisabled	0
 #define BTEnabled	1
@@ -37,7 +38,7 @@
 
 
 #define UART0_SUPPORT    1            //non-zero to enable UART0 code
-//#define UART1_SUPPORT    1            //non-zero to enable UART1 code
+#define UART1_SUPPORT    1            //non-zero to enable UART1 code
 #define UART2_SUPPORT    1            //non-zero to enable UART2 code
 #define UART3_SUPPORT    1            //non-zero to enable UART3 code
 
@@ -53,13 +54,13 @@
 //code is optimized for power of 2 buffer sizes (16, 32, 64, 128, ...)
 //NOTE: the buffers are only used if the respective interrupt mode is
 //enabled
-#define UART0_RX_BUFFER_SIZE 256        //UART0 receive buffer size
+#define UART0_RX_BUFFER_SIZE 512        //UART0 receive buffer size
 #define UART0_TX_BUFFER_SIZE 512       //UART0 transmit buffer size
-//#define UART1_RX_BUFFER_SIZE 128        //UART1 receive buffer size
-//#define UART1_TX_BUFFER_SIZE 256        //UART1 transmit buffer size
+#define UART1_RX_BUFFER_SIZE 256        //UART1 receive buffer size
+#define UART1_TX_BUFFER_SIZE 2        //UART1 transmit buffer size
 #define UART2_RX_BUFFER_SIZE 256        //UART2 receive buffer size
 //#define UART2_TX_BUFFER_SIZE 64        //UART2 transmit buffer size
-#define UART3_RX_BUFFER_SIZE 256        //UART3 receive buffer size
+#define UART3_RX_BUFFER_SIZE 512        //UART3 receive buffer size
 #define UART3_TX_BUFFER_SIZE 512        //UART3 transmit buffer size
 
 
@@ -81,7 +82,7 @@
 
 //Definitions for typical UART 'mode' settings
 #define UART_8N1      (char)(ULCR_CHAR_8 + ULCR_PAR_NO   + ULCR_STOP_1)
-#define UART_7N1      (char)(ULCR_CHAR_7 + ULCR_PAR_NO   + ULCR_STOP_1)
+/*#define UART_7N1      (char)(ULCR_CHAR_7 + ULCR_PAR_NO   + ULCR_STOP_1) // nothing below here needed for this project
 #define UART_8N2      (char)(ULCR_CHAR_8 + ULCR_PAR_NO   + ULCR_STOP_2)
 #define UART_7N2      (char)(ULCR_CHAR_7 + ULCR_PAR_NO   + ULCR_STOP_2)
 #define UART_8E1      (char)(ULCR_CHAR_8 + ULCR_PAR_EVEN + ULCR_STOP_1)
@@ -92,14 +93,14 @@
 #define UART_7O1      (char)(ULCR_CHAR_7 + ULCR_PAR_ODD  + ULCR_STOP_1)
 #define UART_8O2      (char)(ULCR_CHAR_8 + ULCR_PAR_ODD  + ULCR_STOP_2)
 #define UART_7O2      (char)(ULCR_CHAR_7 + ULCR_PAR_ODD  + ULCR_STOP_2)
-
+*/
 
 //Definitions for typical UART 'fmode' settings
 #define UART_FIFO_OFF (0x00)
-#define UART_FIFO_1   (char)(UFCR_FIFO_ENABLE + UFCR_FIFO_TRIG1)
-#define UART_FIFO_4   (char)(UFCR_FIFO_ENABLE + UFCR_FIFO_TRIG4)
-#define UART_FIFO_8   (char)(UFCR_FIFO_ENABLE + UFCR_FIFO_TRIG8)
-#define UART_FIFO_14  (char)(UFCR_FIFO_ENABLE + UFCR_FIFO_TRIG14)
+#define UART_FIFO_1   (char)(UFCR_FIFO_ENABLE + UFCR_RX_FIFO_RESET + UFCR_TX_FIFO_RESET + UFCR_FIFO_TRIG1)
+#define UART_FIFO_4   (char)(UFCR_FIFO_ENABLE + UFCR_RX_FIFO_RESET + UFCR_TX_FIFO_RESET + UFCR_FIFO_TRIG4)
+#define UART_FIFO_8   (char)(UFCR_FIFO_ENABLE + UFCR_RX_FIFO_RESET + UFCR_TX_FIFO_RESET + UFCR_FIFO_TRIG8)
+#define UART_FIFO_14  (char)(UFCR_FIFO_ENABLE + UFCR_RX_FIFO_RESET + UFCR_TX_FIFO_RESET + UFCR_FIFO_TRIG14)
 
 
 
@@ -133,7 +134,7 @@ void uart_sendchar(int c);
 
 #if UART1_SUPPORT
 
-void uart1Init(int baud, char mode, char fmode);
+void uart1Init(unsigned int baud,unsigned  char mode,unsigned  char fmode);
 
 
 int uart1Putch(int ch);
@@ -141,7 +142,7 @@ int uart1Putch(int ch);
 int uart1Putch_block(int ch);
 
 
-int uart1Space(void);
+unsigned int uart1Space(void);
 
 
 const char *uart1Puts(const char *string);
@@ -149,7 +150,7 @@ const char *uart1Puts(const char *string);
 const char *uart1Puts_block(const char *string);
 
 
-int uart1Write(const char *buffer, int count);
+int uart1Write(const char *buffer, unsigned int count);
 
 
 int uart1TxEmpty(void);

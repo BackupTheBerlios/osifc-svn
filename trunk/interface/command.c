@@ -25,28 +25,23 @@
 
 
 */
+#include "command.h"
+#include "../arch/printf_p.h"
+#include "../arch/settings.h"
+#include "../arch/analog.h"
+#include "../arch/init.h"
+#include "../arch/viclowlevel.h"
+#include "../arch/sys_config.h"
+#include "../io/i2c.h"
+#include "../nav/mm3parser.h"
+#include "../arch/led.h"
 
-
-#include "arch/settings.h"
-#include "arch/analog.h"
-#include "arch/init.h"
-#include "arch/viclowlevel.h"
-#include "arch/sys_config.h"
-#include "io/i2c.h"
-
-
-#include "interface/command.h"
 volatile char *settingsStart, *settingsStop;	//pointers to packet currently transfered
 
 volatile unsigned short	msgLen;
 
 
 void updateAcdRate(void) {
-	if (updateCharVal > 255){
-		updateCharVal = 255;
-	} else if (updateCharVal < 0){
-		updateCharVal = 0;
-	}
 	ADC_CLK_DIV = updateCharVal;
 	disableIRQ();
 	init_system();
@@ -56,10 +51,10 @@ void updateAcdRate(void) {
 void checkI2C(void) {
 
 	if (I2C0Mode == I2CMODE_WRITEADDRESS){
-		I2C0Start();
+		I2C0_Start();
 	}
 	if (I2C0Mode == I2CMODE_READADDRESS){
-		I2C0Start();
+		I2C0_Start();
 	}
 
 }
@@ -68,30 +63,48 @@ void checkI2C(void) {
 void checkCmd(void) {
 	switch (commandNum)
 	{
-		case 0:
+		case CMD_PRINT_DEBUG:
 			printDebug();
 		break;
-		case 1:
+		case CMD_PRINT_DEBUG1:
 			printDebug1();
 		break;
-		case 2:
+		case CMD_PRINT_DEBUG2:
 			printDebug2();
 		break;
-		case 3:
+		case CMD_PRINT_DEBUG3:
 			printDebug3();
 		break;
-		case 4:
+		case CMD_PRINT_DEBUG4:
 			printDebug4();
 		break;
 		case 5:
-			printDebug5();
+
 		break;
-		case 6:
-			printDebug6();
+		case CMD_READ_CALIB_COMPASS:
+			printCalibCompassValues();
 		break;
-		case 7:
-			printDebug7();
+		case CMD_WRITE_CALIB_COMPASS:
+
 		break;
+		// starts the MM3 calibration will later become start the compass calibration
+		case CMD_START_CALIB_COMPASS:
+			calib = 1;
+			LED1_OFF;
+			LED2_OFF;
+			LED3_OFF;
+			LED4_OFF;
+		break;
+		// stops the compass calibration
+		case CMD_STOP_CALIB_COMPASS:
+			calib = 0;
+			ledTest();
+			LED1_ON;
+			LED2_OFF;
+			LED3_OFF;
+			LED4_OFF;
+		break;
+
 	}
 }
 
@@ -149,21 +162,25 @@ void checkSerialIn (unsigned char c){
 			break;
 			case CMD_REQ:
 			if (c == CMD_DEC_NUM0) {
-				commandNum = 0;
+				commandNum = CMD_PRINT_DEBUG;
 			} else if (c == CMD_DEC_NUM1) {
-				commandNum = 1;
-			}else if (c == CMD_DEC_NUM2) {
-				commandNum = 2;
-			}else if (c == CMD_DEC_NUM3) {
-				commandNum = 3;
-			}else if (c == CMD_DEC_NUM4) {
-				commandNum = 4;
-			}else if (c == CMD_DEC_NUM5) {
+				commandNum = CMD_PRINT_DEBUG1;
+			} else if (c == CMD_DEC_NUM2) {
+				commandNum = CMD_PRINT_DEBUG2;
+			} else if (c == CMD_DEC_NUM3) {
+				commandNum = CMD_PRINT_DEBUG3;
+			} else if (c == CMD_DEC_NUM4) {
+				commandNum = CMD_PRINT_DEBUG4;
+			} else if (c == CMD_DEC_NUM5) {
 				commandNum = 5;
-			}else if (c == CMD_DEC_NUM6) {
-				commandNum = 6;
-			}else if (c == CMD_DEC_NUM7) {
-				commandNum = 7;
+			} else if (c == CMD_DEC_NUM6) {
+				commandNum = CMD_READ_CALIB_COMPASS;
+			} else if (c == CMD_DEC_NUM7) {
+				commandNum = CMD_WRITE_CALIB_COMPASS;
+			} else if (c == CMD_DEC_NUM8) {
+				commandNum = CMD_START_CALIB_COMPASS;
+			} else if (c == CMD_DEC_NUM9) {
+				commandNum = CMD_STOP_CALIB_COMPASS;
 			} else if (c == CMD_SYNC_DIV) {
 				cmdState = SET_STOP;
 			} else {
@@ -180,7 +197,7 @@ void checkSerialIn (unsigned char c){
 				ygeTargetAdress = c;
 				updateYGE = 0;
 				I2CcmdType = I2CMODE_WRITEADDRESS;
-				I2C0Stop();
+				I2C0_Stop();
 				cmdState = SET_STOP;
 			break;
 			case YGE_START_TARGET:
@@ -239,12 +256,8 @@ void checkSerialIn (unsigned char c){
 				break;
 			case SET_MSGLENGTH:
 				msgLength = c;
-				if (msgLength > 255) {
-					msgLength = 0;
-				} else {
-					settingsStart = (volatile char*)&setupCache;
-					settingsStop = settingsStart+msgLength;
-				}
+				settingsStart = (volatile char*)&setupCache;
+				settingsStop = settingsStart+msgLength;
 				cmdState = SET_DIV;
 			break;
 			case SET_DIV:
@@ -308,7 +321,159 @@ void checkSerialIn (unsigned char c){
 	}
 }
 
+/*
+ *
+ * GND 		= Black
+ * Signal 	= Grey goes to RXD1
+ * VCC3.3   = Orange
+ * Speed at 115000 BPS 8N1
+ * Signal comes as two Byte Data
+ * Sync AILE FLAPS GEAR ELEV AUX2 THRO RUDD
+ * Sync is 0301
+ * There seems to be no checksum so we have to thrust the data anyways
+ *
+ *
+ * There is some conjecture here but we suspect this is pretty close to what happens:
 
+At power up the remote receiver [SPM9545] samples the data line, if it is high it waits for a bind request.
+
+When in bind mode the main receiver performs the following actions:
+It sets that data line to the remote receiver to high, waits 100ms and then send the following:
+
+120µS Low
+120µS High
+120µS Low
+120µS High
+120µS Low
+120µS High
+120µS Low
+then remains High
+ */
+
+char tempi;
+char satTemp;
+void readSpektrum(unsigned char c)
+{
+	if (tempi++ > 4)
+		tempi = 1;
+	//return;
+	led_switch(tempi);
+	//led_switch(2);
+
+	//print_uart0("%2x",c);
+
+	switch (satState)
+	{
+		case SAT_SYNC_1:
+			if (c == SAT_START_1)
+			satState = SAT_SYNC_2;
+		break;
+		case SAT_SYNC_2:
+			if (c == SAT_START_2)
+			satState = SAT_AILE_1;
+		break;
+		case SAT_AILE_1:
+			satTemp = c;
+			satState = SAT_AILE_2;
+		break;
+		case SAT_AILE_2:
+			SAT_channel[0] = c;
+			SAT_channel[0] |= (satTemp << 8);
+			SAT_channel[0] -= 1024;
+			SAT_channel[0] /= 3;
+			SAT_channel[0] -= 170;
+			PWM_channel[PWM_R] = SAT_channel[0];
+			satState = SAT_FLAPS_1;
+		break;
+		case SAT_FLAPS_1:
+			satTemp = c;
+			satState = SAT_FLAPS_2;
+		break;
+		case SAT_FLAPS_2:
+			SAT_channel[1] = c;
+			SAT_channel[1] |= (satTemp << 8);
+			SAT_channel[1] -= 5120;
+			SAT_channel[1] /= 3;
+			SAT_channel[1] -= 170;
+			satState = SAT_GEAR_1;
+		break;
+		case SAT_GEAR_1:
+			satTemp = c;
+			satState = SAT_GEAR_2;
+		break;
+		case SAT_GEAR_2:
+			SAT_channel[2] = c;
+			SAT_channel[2] |= (satTemp << 8);
+			SAT_channel[2] -= 4096;
+			SAT_channel[2] /= 3;
+			SAT_channel[2] -= 170;
+			satState = SAT_ELEV_1;
+		break;
+		case SAT_ELEV_1:
+			satTemp = c;
+			satState = SAT_ELEV_2;
+		break;
+		case SAT_ELEV_2:
+			SAT_channel[3] = c;
+			SAT_channel[3] |= (satTemp << 8);
+			SAT_channel[3] -= 2048;
+			SAT_channel[3] /= 3;
+			SAT_channel[3] -= 170;
+			PWM_channel[PWM_N] = SAT_channel[3];
+			satState = SAT_AUX2_1;
+		break;
+		case SAT_AUX2_1:
+			satTemp = c;
+			satState = SAT_AUX2_2;
+		break;
+		case SAT_AUX2_2:
+			SAT_channel[4] = c;
+			SAT_channel[4] = (satTemp << 8);
+			SAT_channel[4] -= 6144;
+			SAT_channel[4] /= 3;
+			SAT_channel[4] -= 170;
+			satState = SAT_THRO_1;
+		break;
+		case SAT_THRO_1:
+			satTemp = c;
+			satState = SAT_THRO_2;
+		break;
+		case SAT_THRO_2:
+			SAT_channel[5] = c;
+			SAT_channel[5] |= (satTemp << 8);
+			SAT_channel[5] /= 3;
+			SAT_channel[5] -= 170;
+			PWM_channel[PWM_THROTTLE] = SAT_channel[5];
+			satState = SAT_RUDD_1;
+		break;
+		case SAT_RUDD_1:
+			satTemp = c;
+			satState = SAT_RUDD_2;
+		break;
+		case SAT_RUDD_2:
+			SAT_channel[6] = c;
+			SAT_channel[6] |= (satTemp << 8);
+			SAT_channel[6] -= 3072;
+			SAT_channel[6] /= 3;
+			SAT_channel[6] -= 170;
+			PWM_channel[PWM_G] = SAT_channel[6];
+			satState = SAT_SYNC_1;
+
+			print_uart0("FCm0;satData %d %d %d %d %d %d %d  ;00#"
+					,SAT_channel[0]
+					,SAT_channel[1]
+					,SAT_channel[2]
+					,SAT_channel[3]
+					,SAT_channel[4]
+					,SAT_channel[5]
+					,SAT_channel[6]
+			);
+		break;
+		default:
+			satState = SAT_SYNC_1;		//ready for next packet
+
+	}
+}
 
 
 

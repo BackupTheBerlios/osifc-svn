@@ -32,8 +32,8 @@ FLASH_TOOL = OPENOCD
 MCU      = arm7tdmi
 SUBMDL   = LPC2378
 
-USE_THUMB_MODE = YES
-#USE_THUMB_MODE = NO
+#USE_THUMB_MODE = YES
+USE_THUMB_MODE = NO
 
 ## Create ROM-Image (final)
 RUN_MODE=ROM_RUN
@@ -41,9 +41,9 @@ RUN_MODE=ROM_RUN
 ## Exception-Vector placement only supported for "ROM_RUN"
 ## (placement settings ignored when using "RAM_RUN")
 ## - Exception vectors in ROM:
-#VECTOR_LOCATION=VECTORS_IN_ROM
+VECTOR_LOCATION=VECTORS_IN_ROM
 ## - Exception vectors in RAM:
-VECTOR_LOCATION=VECTORS_IN_RAM
+#VECTOR_LOCATION=VECTORS_IN_RAM
 
 # Target file name (without extension).
 TARGET = osiFC
@@ -58,10 +58,10 @@ SRC =
  SRCARM  = main.c arch/printf_p.c math/fcmath.c
  SRCARM += arch/viclowlevel.c arch/clock-arch.c arch/settings.c io/uart.c  arch/analog.c io/i2c.c 
  SRCARM += interface/command.c io/uartisr.c arch/led.c io/pwmin.c arch/init.c io/io.c io/spi.c 
- SRCARM += io/output.c arch/iapcore.c math/pidfc.c math/pdfc.c fc/osifc.c
+ SRCARM += io/output.c arch/iapcore.c math/pidfc.c fc/osifc.c
  SRCARM += io/compass.c io/pwmout.c io/engines.c
- SRCARM += arch/beeper.c nav/NMEAparser.c nav/osigps.c nav/ubxparser.c nav/mm3parser.c
-  SRCARM += interface/rcui.c interface/serialui.c
+ SRCARM += arch/beeper.c nav/NMEAparser.c nav/osigps.c nav/ubxparser.c nav/mm3parser.c nav/navcomp.c
+ SRCARM += interface/rcui.c interface/serialui.c
 
 # List Assembler source files here which must be assembled in ARM-Mode..
 ASRCARM  = build/crt0.S
@@ -191,12 +191,12 @@ endif
 
 # Define programs and commands.
 SHELL = sh
-CC = arm-elf-gcc
-CPP = arm-elf-g++
-OBJCOPY = arm-elf-objcopy
-OBJDUMP = arm-elf-objdump
-SIZE = arm-elf-size
-NM = arm-elf-nm
+CC = arm-none-eabi-gcc
+CPP = arm-none-eabi-g++
+OBJCOPY = arm-none-eabi-objcopy
+OBJDUMP = arm-none-eabi-objdump
+SIZE = arm-none-eabi-size
+NM = arm-none-eabi-nm
 REMOVE = rm -f
 COPY = cp
 

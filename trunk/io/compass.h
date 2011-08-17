@@ -32,7 +32,7 @@
 
 
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 	char STATE;
 	signed int X_axis;

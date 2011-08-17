@@ -25,30 +25,30 @@
 
 
 */
-
-#include "arch/sys_config.h"
-#include "io/io.h"
-
+#include "io.h"
+#include "../arch/sys_config.h"
 
 
 
-void ioInit0(void)
+
+
+void IO_Init0(void)
 {
 	IO0_DIR |= IO0_BIT;
 }
-void ioInit1(void)
+void IO_Init1(void)
 {
 	IO1_DIR |= IO1_BIT;
 }
-void ioInit2(void)
+void IO_Init2(void)
 {
 	IO2_DIR |= IO2_BIT;
 }
-void ioInit3(void)
+void IO_Init3(void)
 {
 	IO3_DIR |= IO3_BIT;
 }
-void ioInit4(void)
+void IO_Init4(void)
 {
 	IO4_DIR |= IO4_BIT;
 }

@@ -40,12 +40,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //SCS defines
-#define SCS_GPIOM        (1UL<<0)
-#define SCS_EMC_RST_DIS  (1UL<<1)
-#define SCS_MCIPWR       (1UL<<3)
-#define SCS_OSCRANGE     (1UL<<4)
-#define SCS_OSCEN        (1UL<<5)
-#define SCS_OSCSTAT      (1UL<<6)
+#define SCS_GPIOM        (1 << 0)
+#define SCS_EMC_RST_DIS  (1 << 1)
+#define SCS_MCIPWR       (1 << 3)
+#define SCS_OSCRANGE     (1 << 4)
+#define SCS_OSCEN        (1 << 5)
+#define SCS_OSCSTAT      (1 << 6)
 
 ///////////////////////////////////////////////////////////////////////////////
 //MAM defines
@@ -54,8 +54,8 @@
 #define MAMCR_FULL    2
 
 #define MAMCR_MODE MAMCR_PART
+//#define MAMCR_MODE MAMCR_FULL
 
-#define MAMTIM_CYCLES (((CCLK) + 19999999) / 20000000)
 
 ///////////////////////////////////////////////////////////////////////////////
 //MEMMAP defines
@@ -72,9 +72,9 @@
 #define PLLCON_PLLC   (1 << 1)          //PLL Connect
 
 //PLLSTAT Register Bit Definitions
-#define PLLSTAT_PLLE  (1UL<<24)
-#define PLLSTAT_PLLC  (1UL<<25)
-#define PLLSTAT_PLOCK (1UL<<26)
+#define PLLSTAT_PLLE  (1 << 24)
+#define PLLSTAT_PLLC  (1 << 25)
+#define PLLSTAT_PLOCK (1 << 26)
 
 //PLLCFG Register Bit Definitions
 #define PLLCFG_MSEL   ((PLL_MUL - 1) << 0) //PLL Multiplier
@@ -85,62 +85,70 @@
 #define PLLSTAT_LOCK  (1 << 10)         //PLL Lock Status Bit
 
 
-
-///////////////////////////////////////////////////////////////////////////////
-//VPBDIV defines & computations
-//#define VPBDIV_VALUE  (PBSD & 0x03)     //VPBDIV value
-
-///////////////////////////////////////////////////////////////////////////////
-//SCS defines - mthomas
-#define GPIO0M        (1 << 0)
-#define GPIO1M        (1 << 1)
-
 ///////////////////////////////////////////////////////////////////////////////
 //UART defines
 #define U0_TX_PINSEL_REG  PINSEL0
-#define U0_TX_PINSEL     (1UL<<4)  /* PINSEL0 Value for UART0 TX */
-#define U0_TX_PINMASK    (3UL<<4)  /* PINSEL0 Mask  for UART0 RX */
+#define U0_TX_LOW     (1 << 4)  /* PINSEL0 Value for UART0 TX */
+#define U0_TX_HIGH    (0 << 5)  /* PINSEL0 Mask  for UART0 TX */
 #define U0_RX_PINSEL_REG  PINSEL0
-#define U0_RX_PINSEL     (1UL<<6)  /* PINSEL0 Value for UART0 TX */
-#define U0_RX_PINMASK    (3UL<<6)  /* PINSEL0 Mask  for UART0 RX */
+#define U0_RX_LOW     (1 << 6)  /* PINSEL0 Value for UART0 RX */
+#define U0_RX_HIGH    (0 << 7)  /* PINSEL0 Mask  for UART0 RX */
+#define U0_TX_PINMODE_REG PINMODE0
+#define U0_TX_PINMODE_LOW	(0 << 4)
+#define U0_TX_PINMODE_HIGH	(1 << 5)
+#define U0_RX_PINMODE_REG PINMODE0
+#define U0_RX_PINMODE_LOW	(0 << 6)
+#define U0_RX_PINMODE_HIGH	(1 << 7)
 
+#define U1_TX_PINSEL_REG  PINSEL4
+#define U1_TX_LOW     (0 << 0)  /* PINSEL0 Value for UART1 TX */
+#define U1_TX_HIGH    (1 << 1)  /* PINSEL0 Mask  for UART1 TX */
+#define U1_RX_PINSEL_REG  PINSEL4
+#define U1_RX_LOW     (0 << 2)  /* PINSEL1 Value for UART1 RX */
+#define U1_RX_HIGH    (1 << 3)  /* PINSEL1 Mask  for UART1 RX */
+#define U1_TX_PINMODE_REG PINMODE4
+#define U1_TX_PINMODE_LOW	(1 << 0)
+#define U1_TX_PINMODE_HIGH	(0 << 1)
+#define U1_RX_PINMODE_REG PINMODE4
+#define U1_RX_PINMODE_LOW	(1 << 2)
+#define U1_RX_PINMODE_HIGH	(0 << 3)
 
-#define U0_TX_PINSEL_REG  PINSEL0
-#define U0_TX_LOW     (1<<4)  /* PINSEL0 Value for UART0 TX */
-#define U0_TX_HIGH    (0<<5)  /* PINSEL0 Mask  for UART0 TX */
-#define U0_RX_PINSEL_REG  PINSEL0
-#define U0_RX_LOW     (1<<6)  /* PINSEL0 Value for UART0 RX */
-#define U0_RX_HIGH    (0<<7)  /* PINSEL0 Mask  for UART0 RX */
-
-#define U1_TX_PINSEL_REG  PINSEL0
-#define U1_TX_LOW     (0<<30)  /* PINSEL0 Value for UART1 TX */
-#define U1_TX_HIGH    (1<<31)  /* PINSEL0 Mask  for UART1 TX */
-#define U1_RX_PINSEL_REG  PINSEL1
-#define U1_RX_LOW     (0<<0)  /* PINSEL1 Value for UART1 RX */
-#define U1_RX_HIGH    (1<<1)  /* PINSEL1 Mask  for UART1 RX */
 
 #define U2_TX_PINSEL_REG  PINSEL4
-#define U2_TX_LOW     (0<<16)  /* PINSEL4 Value for UART2 TX */
-#define U2_TX_HIGH    (1<<17)  /* PINSEL4 Mask  for UART2 TX */
+#define U2_TX_LOW     (0 << 16)  /* PINSEL4 Value for UART2 TX */
+#define U2_TX_HIGH    (1 << 17)  /* PINSEL4 Mask  for UART2 TX */
 #define U2_RX_PINSEL_REG  PINSEL4
-#define U2_RX_LOW     (0<<18)  /* PINSEL4 Value for UART2 RX */
-#define U2_RX_HIGH    (1<<19)  /* PINSEL4 Mask  for UART2 RX */
+#define U2_RX_LOW     (0 << 18)  /* PINSEL4 Value for UART2 RX */
+#define U2_RX_HIGH    (1 << 19)  /* PINSEL4 Mask  for UART2 RX */
+#define U2_TX_PINMODE_REG PINMODE4
+#define U2_TX_PINMODE_LOW	(0 << 16)
+#define U2_TX_PINMODE_HIGH	(1 << 17)
+#define U2_RX_PINMODE_REG PINMODE4
+#define U2_RX_PINMODE_LOW	(0 << 18)
+#define U2_RX_PINMODE_HIGH	(1 << 19)
 
 #define U3_TX_PINSEL_REG  PINSEL9
-#define U3_TX_LOW     (1<<25)  /* PINSEL9 Value for UART3 TX */
-#define U3_TX_HIGH    (1<<24)  /* PINSEL9 Mask  for UART3 TX */
+#define U3_TX_LOW     (1 << 24)  /* PINSEL9 Value for UART3 TX */
+#define U3_TX_HIGH    (1 << 25)  /* PINSEL9 Mask  for UART3 TX */
 #define U3_RX_PINSEL_REG  PINSEL9
-#define U3_RX_LOW     (1<<27)  /* PINSEL9 Value for UART3 RX */
-#define U3_RX_HIGH    (1<<26)  /* PINSEL9 Mask  for UART3 RX */
+#define U3_RX_LOW     (1 << 26)  /* PINSEL9 Value for UART3 RX */
+#define U3_RX_HIGH    (1 << 27)  /* PINSEL9 Mask  for UART3 RX */
+#define U3_TX_PINMODE_REG PINMODE4
+#define U3_TX_PINMODE_LOW	(0 << 24)
+#define U3_TX_PINMODE_HIGH	(1 << 25)
+#define U3_RX_PINMODE_REG PINMODE4
+#define U3_RX_PINMODE_LOW	(0 << 26)
+#define U3_RX_PINMODE_HIGH	(1 << 27)
+
 
 //Interrupt Enable Register bit definitions
-#define UIER_RBR           (1UL << 0)    //(UIER_ERBFI) Enable Receive Data Available Interrupt
-#define UIER_THRE          (1UL << 1)    //(UIER_ETBEI) Enable Transmit Holding Register Empty Interrupt
-#define UIER_RX_LINE_STAT  (1UL << 2)    //(UIER_ELSI) Enable Receive Line Status Interrupt
-#define UIER_MODEM_STAT_INT_EN (1UL<<3)  //(UIER_EDSSI)
-#define UIER_CTS_INT_ENT   (1UL << 7)
-#define UIER_ABTOIntEn     (1UL << 8)
-#define UIER_ABE0IntEn     (1UL << 9)
+#define UIER_RBR           (1 << 0)    //(UIER_ERBFI) Enable Receive Data Available Interrupt
+#define UIER_THRE          (1 << 1)    //(UIER_ETBEI) Enable Transmit Holding Register Empty Interrupt
+#define UIER_RX_LINE_STAT  (1 << 2)    //(UIER_ELSI) Enable Receive Line Status Interrupt
+#define UIER_MODEM_STAT_INT_EN (1 << 3)  //(UIER_EDSSI)
+#define UIER_CTS_INT_ENT   (1 << 7)
+#define UIER_ABTOIntEn     (1 << 8)
+#define UIER_ABE0IntEn     (1 << 9)
 
 //Interrupt ID Register bit definitions
 #define UIIR_NO_INT         (1 << 0)    //NO INTERRUPTS PENDING if set
@@ -150,9 +158,9 @@
 #define UIIR_RLS_INT        (3 << 1)    //Receive Line Status
 #define UIIR_CTI_INT        (6 << 1)    //Character Timeout Indicator
 #define UIIR_ID_MASK        0x0E
-#define UIIR_FIFO_ENABLE    (1<<6)
-#define UIIR_ABEOInt        (1<<8)
-#define UIIR_ABTOInt        (1<<9)
+#define UIIR_FIFO_ENABLE    (1 << 6)
+#define UIIR_ABEOInt        (1 << 8)
+#define UIIR_ABTOInt        (1 << 9)
 
 //FIFO Control Register bit definitions
 #define UFCR_FIFO_ENABLE    (1 << 0)    //FIFO Enable
@@ -272,12 +280,12 @@
 
 #define SPI0_PINSEL_SCK  PINSEL3
 #define SPI0_PINSEL_M  PINSEL3
-#define SPI0_MISO_LOW (1<<14)
-#define SPI0_MISO_HIGH (1<<15)
-#define SPI0_MOSI_LOW (1<<16)
-#define SPI0_MOSI_HIGH (1<<17)
-#define SPI0_SCK0_LOW (1<<8)
-#define SPI0_SCK0_HIGH (1<<9)
+#define SPI0_MISO_LOW  (1 << 14)
+#define SPI0_MISO_HIGH (1 << 15)
+#define SPI0_MOSI_LOW  (1 << 16)
+#define SPI0_MOSI_HIGH (1 << 17)
+#define SPI0_SCK0_LOW  (1 << 8)
+#define SPI0_SCK0_HIGH ( 1<< 9)
 
 /* SPI0 (Serial Peripheral Interface 0) */
 #define SPI0_BASE_ADDR		0xE0020000
@@ -302,10 +310,10 @@
 
 /* SSP1 Controller */
 #define SPI1_PINSEL_REG  PINSEL0
-#define SPI1_MISO_LOW (0<<16)
-#define SPI1_MISO_HIGH (1<<17)
-#define SPI1_MOSI_LOW (0<<18)
-#define SPI1_MOSI_HIGH (1<<19)
+#define SPI1_MISO_LOW  (0 << 16)
+#define SPI1_MISO_HIGH (1 << 17)
+#define SPI1_MOSI_LOW  (0 << 18)
+#define SPI1_MOSI_HIGH (1 << 19)
 #define SSP1_BASE_ADDR		0xE0030000
 #define SSP1CR0        (*(volatile unsigned long *)(SSP1_BASE_ADDR + 0x00))
 #define SSP1CR1        (*(volatile unsigned long *)(SSP1_BASE_ADDR + 0x04))

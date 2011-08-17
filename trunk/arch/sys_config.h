@@ -85,13 +85,17 @@
 #error correct and recompile
 #endif
 
-#if ((CCLK < 10000000) || (CCLK > 72000000))
+#if ((CCLK > 72000000))
 //TODO: check Minimum for LPC23xx/24xx
 #error cclk out of range (10MHz-72MHz)
 #error correct PLL_MUL and recompile
 #endif
 
-
+#if ((CCLK < 10000000))
+//TODO: check Minimum for LPC23xx/24xx
+#error cclk out of range (10MHz-72MHz)
+#error correct PLL_MUL and recompile
+#endif
 /* APB clock frequency , must be 1/2/4 multiples of ( Fcclk/4 ). */
 /* If USB is enabled, the Minimum APB must be greater than 16Mhz */
 //USB is not supported by osiFC

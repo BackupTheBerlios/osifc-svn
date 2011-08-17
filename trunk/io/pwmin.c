@@ -27,17 +27,16 @@
 */
 
 
-
-#include "arch/settings.h"
-#include "arch/lpc23xx.h"
-#include "arch/sys_config.h"
-#include "arch/clock-arch.h"
-#include "arch/printf_p.h"
-#include "arch/led.h"
-#include "io/compass.h"
-#include "io/i2c.h"
-#include "io/pwmin.h"
-#include "nav/mm3parser.h"
+#include "pwmin.h"
+#include "compass.h"
+#include "i2c.h"
+#include "../arch/settings.h"
+#include "../arch/lpc23xx.h"
+#include "../arch/sys_config.h"
+#include "../arch/clock-arch.h"
+#include "../arch/printf_p.h"
+#include "../arch/led.h"
+#include "../nav/mm3parser.h"
 
 volatile unsigned long int PWMChannelR1;
 volatile unsigned long int PWMChannelR2;
@@ -49,7 +48,7 @@ volatile unsigned int timerTemp;
 
 volatile long int PWMtmp;
 
-void initPWMvars(void)
+void PWMIN_Init_Vars(void)
 {
 	PWM_chan_count 		= 0;
 	PWM_valid			= 0;
@@ -96,7 +95,15 @@ void initPWMvars(void)
 	TimerVal 			= 0;
 }
 
-void __attribute__ ((interrupt("IRQ"))) pwmin_MC_ISR(void)
+void __attribute__ ((interrupt("IRQ"))) DRDY_ISR(void)
+{
+	setMM3State(MM3_DRDY);
+	IO2_INT_CLR ^= PWMtmp;
+	VICVectAddr = 0;						//Acknowledge Interrupt (rough?)
+	return;
+}
+
+void __attribute__ ((interrupt("IRQ"))) PWMIN_MC_ISR(void)
 {
 	PWMtmp = IO2_INT_STAT_R;
 //led_switch(2);
@@ -161,13 +168,13 @@ void __attribute__ ((interrupt("IRQ"))) pwmin_MC_ISR(void)
 
 
 // old version of single channel PWM in
-void __attribute__ ((interrupt("IRQ"))) pwmin_SC_ISR(void)
+void __attribute__ ((interrupt("IRQ"))) PWMIN_SC_ISR(void)
 {
 
 	if (PWMChannelR2 == 0x4) {
 		// read the HMC compass as DRDY went high
 		IO2_INT_CLR |= 0x4;
-		I2C1Start();
+		I2C1_Start();
 	} else {
 
 

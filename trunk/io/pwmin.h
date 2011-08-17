@@ -57,7 +57,7 @@
 
 
 // The DRDY Pin to select which one is used P2.2 (0x04) or P2.7 (0x80)
-#define DRDY_PIN		0x04				// PWMIN_PIN_8 if used
+#define DRDY_PIN		BIT(2)  // PWMIN_PIN_8 if used
 
 //PWM SingleChannel states
 
@@ -66,6 +66,8 @@
 
 #define	PWM_MC			0
 #define	PWM_SC			1
+
+#define maxPWM			12			//hardcoded to be Maximum 12 if more is needed update here
 
 
 volatile unsigned int PWM_THROTTLE;
@@ -87,15 +89,16 @@ volatile unsigned char PWM_chan_count;		//to count the actual channel when in mu
 volatile unsigned int PWM_valid;			//used to judge if PWM readout still delivers trustable results
 											//if not parashoot should be released and engines stoped toDo implement parashoot
 
-volatile signed int PWM_mux[12];			//hardcoded to be Maximum 12 if more is needed update here
-volatile signed int PWM_count[12];
-volatile signed int PWM_channel[12];
+volatile signed int PWM_mux[maxPWM];
+volatile signed int PWM_count[maxPWM];
+volatile signed int PWM_channel[maxPWM];
 volatile unsigned int OldTimerVal;			//to get the Difference betewen interupts we store the old value this saves us from reseting timer values
 volatile unsigned int TimerVal;				//actual timer value to "freeze" the value for processing
-volatile unsigned int PWM_SC_Temp[10]; 		//to store the OldTimer values when using multiport PWMin
+volatile unsigned int PWM_SC_Temp[maxPWM]; 		//to store the OldTimer values when using multiport PWMin
 
-void pwmin_SC_ISR(void);
-void pwmin_MC_ISR(void);
-void initPWMvars (void);
+void DRDY_ISR(void);
+void PWMIN_SC_ISR(void);
+void PWMIN_MC_ISR(void);
+void PWMIN_Init_Vars(void);
 
 #endif /*pwmin_H*/

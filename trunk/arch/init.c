@@ -25,43 +25,45 @@
 
 
 */
+#include "init.h"
+#include "settings.h"
+#include "printf_p.h"
+#include "clock-arch.h"
+#include "sys_config.h"
+#include "analog.h"
+#include "led.h"
+#include "viclowlevel.h"
+#include "beeper.h"
 
-#include "arch/settings.h"
-#include "arch/init.h"
-#include "arch/clock-arch.h"
-#include "arch/sys_config.h"
-#include "arch/analog.h"
-#include "arch/led.h"
-#include "arch/viclowlevel.h"
-#include "arch/beeper.h"
+#include "../io/io.h"
+#include "../io/spi.h"
+#include "../io/pwmout.h"
+#include "../io/pwmin.h"
+#include "../io/uartisr.h"
+#include "../io/uart.h"
+#include "../io/i2c.h"
+#include "../io/engines.h"
+#include "../io/compass.h"
 
-#include "io/io.h"
-#include "io/spi.h"
-#include "io/pwmout.h"
-#include "io/pwmin.h"
-#include "io/uartisr.h"
-#include "io/uart.h"
-#include "io/i2c.h"
-#include "io/engines.h"
-#include "io/compass.h"
-
-#include "fc/osifc.h"
-#include "nav/mm3parser.h"
-
-#include "interface/command.h"
+#include "../fc/osifc.h"
+#include "../nav/mm3parser.h"
+#include "../nav/navcomp.h"
+#include "../interface/command.h"
 
 static int RTCinit = 0;
 
 
 /* Initialize the interrupt controller */
-
+void init_VIC(void);
 void init_VIC(void)
 {
     unsigned long i = 0;
     unsigned long *vect_addr, *vect_cntl;
 
     /* initialize VIC*/
+    VICIntEnable = 0x00;	/* disable all Interrupts */
     VICIntEnClr = 0xFFFFFFFF;
+    VICSoftIntClr = 0xFFFFFFFF;
     VICVectAddr = 0;
     VICIntSelect = 0;
 
@@ -73,12 +75,12 @@ void init_VIC(void)
 		*vect_addr = 0x0;
 		*vect_cntl = 0xF;
     }
-	VICIntEnable = 0x00;	/* disable all Interrupts */
+	//VICIntEnable = 0x00;	/* disable all Interrupts */
 
     return;
 }
 
-
+void reset_GPIO( void );
 void reset_GPIO( void )
 {
 	/* Reset all GPIO pins to default: primary function */
@@ -109,7 +111,7 @@ void reset_GPIO( void )
     FIO4SET = 0x00000000;
 }
 
-
+void init_PLL(void);
 void init_PLL(void)
 {
 	unsigned long readback;
@@ -164,18 +166,21 @@ void init_PLL(void)
 //this means we actually give current to the peace of hardware or connect it to the clock
 //this is mainly made for power saving so if you like to save power think about saving it here
 //Don't switch off what you need ;)
-
+void init_Powr(void);
 void init_Powr(void)
 {
 	//set ADC to full stop
 	AD0CR =  (0 << 21); 			//has to be set to 0 before switching ADC power
-
+	PINSEL10 |= (0 << 3);			// disable ETM interface
 
 									//PCONP 0 is unused and should not been set
 	PCONP |= (1 << 1);  			//Timer/Counter 0 power/clock control bit.
 	PCONP |= (1 << 2);				//Timer/Counter 1 power/clock control bit.
-	PCONP |= (1 << 3);				//UART0
-	PCONP |= (0 << 4);				//UART1 not yet used so switched off
+	PCONP |= (1 << 3);				//UART0 PC connector RS232
+	PCONP |= (1 << 4);				//UART1 used to retrieve GPS Data
+									//since this is full duplex you still have TXD free on UART2
+									// but there is an open issue with enabling IRQ on this port
+									// for now RXD gets polled
 
 	//Bit 5 is unused by LPC2378
 
@@ -199,7 +204,7 @@ void init_Powr(void)
 	PCONP |= (0 << 22); 			//Timer 2 power/clock control bit.
 	PCONP |= (0 << 23); 			//Timer 3 power/clock control bit.
 									//switch on timers when using them
-	PCONP |= (1 << 24); 			//UART2 used to retrieve GPS Data
+	PCONP |= (1 << 24); 			//UART2 used for Spektrum receiver
 									//since this is full duplex you still have TXD free on UART2
 	PCONP |= (1 << 25); 			//UART3 used for BT
 
@@ -213,7 +218,7 @@ void init_Powr(void)
 	PCONP |= (0 << 30);				//Ethernet block power/clock control bit. not build in osiFC
 	PCONP |= (0 << 31);				//USB interface power/clock control bit. not build in osiFC
 
-	PINSEL10 |= (0 << 3);			// disable ETM interface
+
 
 
 	//note  13, 14, 21, 29, 30, 31 bits should not been set to 1 as those functions are
@@ -223,7 +228,7 @@ void init_Powr(void)
 
 
 
-
+void init_LowLevelSystems(void);
 void init_LowLevelSystems(void)
 {
 	init_Powr();
@@ -263,7 +268,7 @@ void init_LowLevelSystems(void)
 #error RUN_MODE not defined!
 #endif */
 }
-
+void init_ADC_HW(void);
 void init_ADC_HW(void)
 {
 
@@ -303,7 +308,7 @@ void init_ADC_HW(void)
 
   	resetADCmuxer();
 }
-
+void init_LED(void);
 void init_LED(void)
 {
 
@@ -318,26 +323,14 @@ void init_LED(void)
 	LED3_ON;
 	LED4_ON;
 
-}
-
-void init_PWMinChannels(void)
-{
-	//this may look like it does make no sense it does not! but just to be sure...
-	PINSEL0 |= (0<<8)	|(0<<9);
-	PINSEL0 |= (0<<10)	|(0<<11);
-	PINSEL0 |= (0<<12)	|(0<<13);
-	PINSEL0 |= (0<<30)	|(0<<31);
-	PINSEL1 |= (0<<0)	|(0<<1);
-	PINSEL1 |= (0<<2)	|(0<<3);
-	PINSEL1 |= (0<<4)	|(0<<5);
-	PINSEL4 |= (0<<10)	|(0<<11);
-	PINSEL4 |= (0<<14)	|(0<<15);
+	ledOFF();
+	ledTest();							 	//test the LEDs
 
 }
-
+void init_sspi0(void);
 void init_sspi0(void)
 {
-	char i, tmp;
+	char i,tmp; // tmp gets an error but is used just a few lines below.
 	//set SPI0 Pins
 	SPI0_PINSEL_SCK |= SPI0_SCK0_LOW | SPI0_SCK0_HIGH;
 	SPI0_PINSEL_M |= SPI0_MISO_LOW | SPI0_MISO_HIGH;
@@ -362,6 +355,7 @@ void init_sspi0(void)
 	}
 
 }
+void init_spi1(void);
 void init_spi1(void)
 {
 
@@ -371,7 +365,7 @@ void init_spi1(void)
 	SPI1_PINSEL_REG |= SPI1_MOSI_LOW | SPI1_MOSI_HIGH;
 }
 
-
+void init_SDcard(void);
 void init_SDcard(void)
 {
 	PINSEL1 |= (1<<6)|(0<<7);
@@ -385,87 +379,150 @@ void init_SDcard(void)
 	PINSEL1 |= (0<<26)|(0<<27);
 	PINSEL1 |= (0<<28)|(0<<29);
 }
-void init_PWM(void)
+void init_PWM_capture(void);
+void init_PWM_capture(void)
 {
 
-	switch (fcSetup.PWMMode) //fcSetup.escType
-    {
-	case PWM_MC:
-		//Interrupt bei rising edge
-		//P2.6 to Capture
-		//P2.2 to Capture MM3 DRDY
-		IO2_INT_EN_R |= pwmin0_BIT | DRDY_PIN;
-		VICVectAddr17     = (unsigned long)pwmin_MC_ISR;
-	break;
-	case PWM_SC:
-		//Capture
-		//pins 0.4, 0.5, 0.6, 0.15, 0.16, 0.17, 0.18, 2.5, 2.7 (E0)
-		//2.2 gets used as DRDY (04) Rising edge only
-		//if you like or need you can add the pin used for PWMtmp signal
-		//this would the allow you to have 10 PWM in channels
-		//Interrupt at rising edge
-		IO0_INT_EN_R |= 0x00078070;
-		IO2_INT_EN_R |= 0x000000A4;
-		VICVectAddr17     = (unsigned long)pwmin_SC_ISR;
-	break;
-    }
-
-
-	//VICIntSelect
-	//initialize the interrupt vector
-	VICIntSelect    &= ~VIC_CHAN_TO_MASK(VIC_CHAN_NUM_EINT3);
-	VICIntEnClr     = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_EINT3);
-	VICVectPriority17 = 0x02;
-	VICIntEnable    = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_EINT3);
+	char enabled = 0;
+	//if the Receiver is PPM enable selected PPM receiver
+	//otherwise just enable the DRDY Pin for the Compass
+	if (fcSetup.ReceiverType == 0) {
+		switch (fcSetup.PWMMode)
+		{
+		case PWM_MC:
+			//Interrupt bei rising edge
+			//P2.6 to Capture
+			//P2.2 to Capture MM3 DRDY
+			IO2_INT_EN_R |= pwmin0_BIT;
+			if (fcSetup.components[compassComponent] == 1){ //if Compass is anabled start capture DRDY Pin
+				IO2_INT_EN_R |= DRDY_PIN;
+			}
+			VICVectAddr17     = (unsigned long)PWMIN_MC_ISR;
+			enabled = 1;
+		break;
+		case PWM_SC:
+			//Capture
+			//pins 0.4, 0.5, 0.6, 0.15, 0.16, 0.17, 0.18, 2.5, 2.7 (E0)
+			//2.2 gets used as DRDY (04) Rising edge only
+			//if you like or need you can add the pin used for PWMtmp signal
+			//this would the allow you to have 10 PWM in channels
+			//Interrupt at rising edge
+			IO0_INT_EN_R |= 0x00078070;
+			IO2_INT_EN_R |= 0x000000A4;
+			VICVectAddr17     = (unsigned long)PWMIN_SC_ISR;
+			enabled = 1;
+		break;
+		}
+	} else {
+		if (fcSetup.components[compassComponent] == 1){  //if Compass is anabled start capture DRDY Pin
+			IO2_INT_EN_R |= DRDY_PIN;
+			VICVectAddr17     = (unsigned long)DRDY_ISR;
+			enabled = 1;
+		}
+	}
+	if (enabled == 1) {		//only enable this interrupt if really needed
+		//VICIntSelect
+		//initialize the interrupt vector
+		VICIntSelect    &= ~VIC_CHAN_TO_MASK(VIC_CHAN_NUM_EINT3);
+		VICIntEnClr     = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_EINT3);
+		VICVectPriority17 = 0x02;
+		VICIntEnable    = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_EINT3);
+	}
 }
+
+
+void init_uart(void);
 void init_uart(void)
 {
 	//set port pins for UART0
+	U0_TX_PINSEL_REG |= U0_TX_LOW;
+	U0_TX_PINSEL_REG |= U0_TX_HIGH;
+	U0_RX_PINSEL_REG |= U0_RX_LOW;
+	U0_RX_PINSEL_REG |= U0_RX_HIGH;
+	U0_TX_PINMODE_REG |= U0_TX_PINMODE_LOW;
+	U0_TX_PINMODE_REG |= U0_TX_PINMODE_HIGH;
+	U0_RX_PINMODE_REG |= U0_RX_PINMODE_LOW;
+	U0_RX_PINMODE_REG |= U0_RX_PINMODE_HIGH;
 
-	U0_TX_PINSEL_REG |= ( U0_TX_PINSEL_REG & ~U0_TX_PINMASK ) | U0_TX_PINSEL;
-	U0_RX_PINSEL_REG |= ( U0_RX_PINSEL_REG & ~U0_RX_PINMASK ) | U0_RX_PINSEL;
-
-	//U0_TX_PINSEL_REG |= U0_TX_LOW;
-	//U0_TX_PINSEL_REG |= U0_TX_HIGH;
-	//U0_RX_PINSEL_REG |= U0_RX_LOW;
-	//U0_RX_PINSEL_REG |= U0_RX_HIGH;
-
-	//set port pins for UART1
+	//set port pins for UART1 TX not in use yet be aware of some IRQ issue with this port
 	//U1_TX_PINSEL_REG |= U1_TX_LOW;
 	//U1_TX_PINSEL_REG |= U1_TX_HIGH;
-	//U1_RX_PINSEL_REG |= U1_RX_LOW;
-	//U1_RX_PINSEL_REG |= U1_RX_HIGH;
-
-	//set port pins for UART2
-	U2_TX_PINSEL_REG |= U2_TX_LOW;
-	U2_TX_PINSEL_REG |= U2_TX_HIGH;
-	U2_RX_PINSEL_REG |= U2_RX_LOW;
-	U2_RX_PINSEL_REG |= U2_RX_HIGH;
+	U1_RX_PINSEL_REG |= U1_RX_LOW;
+	U1_RX_PINSEL_REG |= U1_RX_HIGH;
+	//U1_TX_PINMODE_REG |= U1_TX_PINMODE_LOW;
+	//U1_TX_PINMODE_REG |= U1_TX_PINMODE_HIGH;
+	U1_RX_PINMODE_REG |= U1_RX_PINMODE_LOW;
+	U1_RX_PINMODE_REG |= U1_RX_PINMODE_HIGH;
 
 	//set port pins for UART3
 	U3_TX_PINSEL_REG |= U3_TX_LOW;
 	U3_TX_PINSEL_REG |= U3_TX_HIGH;
 	U3_RX_PINSEL_REG |= U3_RX_LOW;
 	U3_RX_PINSEL_REG |= U3_RX_HIGH;
-
+	U3_TX_PINMODE_REG |= U3_TX_PINMODE_LOW;
+	U3_TX_PINMODE_REG |= U3_TX_PINMODE_HIGH;
+	U3_RX_PINMODE_REG |= U3_RX_PINMODE_LOW;
+	U3_RX_PINMODE_REG |= U3_RX_PINMODE_HIGH;
 
 	uart0Init(B115200, UART_8N1, UART_FIFO_8); //setup the UART0			//main UART supports direct PC connection
-	//uart1Init(B115200, UART_8N1, UART_FIFO_8); //setup the UART1			//not in use yet
-	uart2Init(B115200, UART_8N1, UART_FIFO_8); //setup the UART2	  		//UART used for GPS
+	//uart1Init(B9600, UART_8N1, UART_FIFO_8); //setup the UART1			//UART used for GPS for some unknown reason its not possible to ru this in interrupt mode. So I started to poll the values
 	uart3Init(B115200, UART_8N1, UART_FIFO_8); //setup the UART3			//UART connected to bluetooth but not yet in use
+
 }
+void init_Spektrum(void);
+void init_Spektrum(void)
+{
+
+	//set port pins for UART2 TX not in use yet
+	//U2_TX_PINSEL_REG |= U2_TX_LOW;
+	//U2_TX_PINSEL_REG |= U2_TX_HIGH;
+	U2_RX_PINSEL_REG |= U2_RX_LOW;
+	U2_RX_PINSEL_REG |= U2_RX_HIGH;
+	//U2_TX_PINMODE_REG |= U2_TX_PINMODE_LOW;
+	//U2_TX_PINMODE_REG |= U2_TX_PINMODE_HIGH;
+	U2_RX_PINMODE_REG |= U2_RX_PINMODE_LOW;
+	U2_RX_PINMODE_REG |= U2_RX_PINMODE_HIGH;
+
+	uart2Init(B115200, UART_8N1, UART_FIFO_8); //setup the UART2	  		//Spektrum satellite
+	satState = SAT_SYNC_1; // set Spektrum Satreceiver Status to be ready to receive Data
+}
+
+void init_RTC(void);
 void init_RTC(void)
 {
 	RTC_CTCReset();
-	RTCInit();
-	RTCStart();
+	RTC_Init();
+	RTC_Start();
 }
-
+void init_MM3(void);
 void init_MM3(void)
 {
+
+	// Values for Testing 1024
+	/*sysSetup.MM3.X_range = 1424;
+	sysSetup.MM3.Y_range = 1471;
+	sysSetup.MM3.Z_range = 1551;
+
+	sysSetup.MM3.X_off = 12;
+	sysSetup.MM3.Y_off = -42;
+	sysSetup.MM3.Z_off = 19;*/
+	//2048
+	sysSetup.MM3.X_range = 2771;
+	sysSetup.MM3.Y_range = 12037;
+	sysSetup.MM3.Z_range = 58037;
+
+	sysSetup.MM3.X_off = 27;
+	sysSetup.MM3.Y_off = -182;
+	sysSetup.MM3.Z_off = 37;
+
+
+
+	setCompassStatus(1);
+	setCompassBusy(0);
+
 	//IO1(RESET) and IO0 (SSNOT) as out
-	ioInit0();			//SlaveSelect
-	ioInit1();			//Reset
+	IO_Init0();			//SlaveSelect
+	IO_Init1();			//Reset
 
 	IO0_ON;				//IO0 (SSNOT) auf High -> MM3 passive
 	IO1_OFF;			//IO1 (RESET) auf Low
@@ -484,20 +541,18 @@ void init_system(void)
 	init_LowLevelSystems();                	//setup clocks and processor port pins
 	reset_GPIO();					  		//setup all ports to be IO
 	init_beeper();
+
 	init_VIC();							  	//init the Vector Interrupt
 	enableIRQ(); 						  	//switch on the IRQ
-
+	//enableFIQ();							//Fast IRQ not in use yet
 	init_uart();							//init the UART
 	print_uart0("FCm0;low level system alive;00#");
 
 	init_LED();							  	//init the LEDs
 
-	ledOFF();
-	ledTest();							 	//test the LEDs
-
 	print_uart0("FCm0;starting secondary systems;00#");
 
-	enginesOff();						  	//set engines to 0 PWM
+	engines_Off();						  	//set engines to 0 PWM
 
 	initSettings();						  	//load the settings from flash to ram
 
@@ -509,17 +564,14 @@ void init_system(void)
 	ADC_offset[2] = 125;
 	ADC_offset[6] = 200;
 
+	I2C0_Init();						  	 	//init I2C0 Port (Engines)
+	I2C0_Start();
 
+	I2C1_Init();								//init I2C1 Port DAC
+	I2C1_Start();
 
-
-	I2C0Init();						  	 	//init I2C0 Port (Engines)
-	I2C0Start();
-
-	I2C1Init();								//init I2C1 Port DAC
-	I2C1Start();
-
-	//I2C2Init();						 	//not yet in use
-	//I2C2Start();
+	//I2C2_Init();						 	//not yet in use
+	//I2C2_Start();
 
 
 
@@ -536,19 +588,17 @@ void init_system(void)
 
 	init_sspi0();						  	//init sspi0 using spi
 
+	PWMIN_Init_Vars();
 
+	init_PWM_capture();
+	if (fcSetup.ReceiverType == 1) {		//init the spektrum Receiver if selected
+		init_Spektrum();
+	}
 
-	initPWMvars();
-	init_PWM();
-	initCamServos();
-	init_PWMOutChannels();					//init the PWM out Pins
-
-
+	PWMOUT_init_Cam_Servos();
+	PWMOUT_init_OutChannels();				//init the PWM out Pins
 
 	engine = 0;
-
-	print_uart0("FCm0;setting up flight system;00#");
-	initFCRuntime();
 	init_ADC_HW();
 	print_uart0("FCm0;capture ADC standstill values;00#");
 
@@ -556,29 +606,13 @@ void init_system(void)
 	GyroInit();
 	//ADCPressureSetup(AIRPRESSURE);
 	ADCStandstillValues();
-	init_MM3();							 	//init the MM3
+	//init_MM3();							//init the MM3
 											//this also inits IO0 and IO1 which are taken for CS(SS) and reset
 
-	//print_uart0("FCm0;init HMC;00#");
-	//I2C1InitHMCMode();
-
-	//setHMC5843Gain();
-	//initHMC6343();
-
-	//setHMC5843Rate();
-
-	//setHMCGain();
-
-	//setHMC5843Continous();
-
-
-	//for(int tmp = 0;tmp<1000000;tmp++){asm("nop");};
-	//print_uart0("FCm0;read HMC;00#");
-	//initialreadHMC5843();
-
-	I2C1Stop();
-	LED1_ON;
-
+	print_uart0("FCm0;setting up flight system;00#");
+	initFCRuntime();
+	I2C1_Stop();
+	LED1_OFF;
 
 }
 

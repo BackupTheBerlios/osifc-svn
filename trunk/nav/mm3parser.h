@@ -43,7 +43,7 @@
 #define MM3_PERIOD_4096 0x70
 
 //toDo make this a setting
-#define MM3_PS	MM3_PERIOD_2048 //MM3 Period select to select how many ticks to count during measurement
+#define MM3_PS	MM3_PERIOD_512 //MM3 Period select to select how many ticks to count during measurement
 								//2048 is the largest value safe not to count till overflow
 
 //states for MM3
@@ -65,24 +65,40 @@
 
 
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 	char STATE;
 	char AXIS;
-	int heading;
+	signed int heading;
 	signed int X_axis;
 	signed int Y_axis;
 	signed int Z_axis;
 	signed int roll;
 	signed int nick;
+	signed int ground;
 } MM3RUNTIME;
+
+
+
+
+volatile char calib;
+
 
 volatile MM3RUNTIME MM3_runtime;
 
 void setMM3State(char state);
-void mm3calcHeading (void);
+void mm3calcHeading(void);
 void parseMM3(void);
 int heading_MM3(void);
 void calib_MM3(void);
+
+
+
+
+
+
+
+
+
 
 #endif /* MM3_H_ */

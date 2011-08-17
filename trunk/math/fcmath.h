@@ -40,8 +40,11 @@
 #define LIGHTSPEED  		299792458
 
 
-signed int cos_i(signed int winkel);
-signed int sin_i(signed int winkel);
+
+
+float cos_f(float winkel);
+float sin_f(float winkel);
+signed int asin_i(signed int i);
 signed int atan2_i(signed int x, signed int y);
 
 #endif /*FCMATH_H*/

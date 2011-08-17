@@ -77,16 +77,17 @@
 //interworking in the makefile
 //one 256 Byte slot will be taken for the firmware loader
 
-#include "arch/iapCore.h"
-#include "arch/viclowlevel.h"
-#include "arch/sys_config.h"
-#include "arch/settings.h"
-#include "io/output.h"
-#include "arch/led.h"
+#include "iapCore.h"
+#include "viclowlevel.h"
+#include "sys_config.h"
+#include "settings.h"
+#include "../io/output.h"
+#include "led.h"
 
 
 
-unsigned int SectorAddressRange[28][2] = { {0x00000000, 0x00000FFF},
+unsigned int SectorAddressRange[28][2] __attribute__ ((__aligned__))
+                                    = { {0x00000000, 0x00000FFF},
 {0x00001000, 0x00001FFF}, {0x00002000, 0x00002FFF}, {0x00003000, 0x00003FFF},
 {0x00004000, 0x00004FFF}, {0x00005000, 0x00005FFF}, {0x00006000, 0x00006FFF},
 {0x00007000, 0x00007FFF}, {0x00008000, 0x0000FFFF}, {0x00010000, 0x00017FFF},
@@ -102,7 +103,8 @@ unsigned int SectorAddressRange[28][2] = { {0x00000000, 0x00000FFF},
 //here we create a matrix for easy access to all the different start addresses.
 //toDo calculate the address out of slot and channel
 
-unsigned long slotChannels[4][16] = {
+unsigned long slotChannels[4][16] __attribute__ ((__aligned__))
+                              = {
 		{SLOT_00_SET_00_ADDR,SLOT_00_SET_01_ADDR,SLOT_00_SET_02_ADDR,SLOT_00_SET_03_ADDR,
 				SLOT_00_SET_04_ADDR,SLOT_00_SET_05_ADDR,SLOT_00_SET_06_ADDR,SLOT_00_SET_07_ADDR,
 				SLOT_00_SET_08_ADDR,SLOT_00_SET_09_ADDR,SLOT_00_SET_10_ADDR,SLOT_00_SET_11_ADDR,

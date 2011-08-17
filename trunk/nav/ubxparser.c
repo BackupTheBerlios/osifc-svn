@@ -25,10 +25,10 @@
 
 
 */
-#include "arch/led.h"
-#include "nav/ubxparser.h"
-#include "nav/gps.h"
 
+#include "ubxparser.h"
+#include "../arch/led.h"
+#include "gps.h"
 
 volatile unsigned char	ignorePacket;		//true when previous packet was not processed
 volatile unsigned short	UBXmsgLen;

@@ -25,11 +25,60 @@
 
 
 */
-
+#include "viclowlevel.h"
 
 #define IRQ_MASK 0x00000080
+#define FIQ_MASK 0x00000040
 
-#include "viclowlevel.h"
+#define ALLINT_MASK (IRQ_MASK | FIQ_MASK)
+
+
+
+
+/*
+ * Adjust address at which execution should resume after servicing ISR to compensate for IRQ entry
+ * Save the non-banked registers r0-r12 and lr onto the IRQ stack.
+ * Get the status of the interrupted program is in SPSR.
+ * Push it onto the IRQ stack as well.
+ */
+
+// *INDENT-OFF*
+
+void ISR_ENTRY(void)
+{
+	return;
+  asm volatile(						   \
+             "sub   lr, lr,#4\n"			   \
+             "stmfd sp!,{r0-r12,lr}\n"		           \
+             "mrs   r1, spsr\n"			           \
+             "stmfd sp!,{r1}"				   \
+             );
+}
+
+/*
+ * Recover SPSR value from stack and restore  its value
+ * Pop the return address & the saved general registers from the IRQ stack & return
+ */
+
+void ISR_EXIT(void)
+{
+	return;
+  asm volatile(						  \
+             "ldmfd sp!,{r1}\n"			          \
+             "msr   spsr_c,r1\n"			  \
+             "ldmfd sp!,{r0-r12,pc}^"			  \
+             );
+}
+
+
+
+
+
+
+
+
+
+
 unsigned asm_get_cpsr(void);
 
 unsigned asm_get_cpsr(void)

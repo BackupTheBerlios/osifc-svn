@@ -25,11 +25,12 @@
 
 
 */
+#include "uart.h"
+#include "uartisr.h"
+#include "../arch/sys_config.h"
+#include "../arch/settings.h"
+#include "../arch/printf_p.h"
 
-#include "arch/sys_config.h"
-#include "arch/settings.h"
-#include "io/uartisr.h"
-#include "io/uart.h"
 
 
 #ifndef USHRT_MAX
@@ -120,7 +121,7 @@ void uart0Init(unsigned int baud, unsigned char mode, unsigned char fmode)
   VICIntSelect    &= ~VIC_CHAN_TO_MASKLOW(VIC_CHAN_NUM_UART0);
   VICIntEnClr      = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_UART0);
   VICVectAddr6     = (unsigned long)uart0ISR;
-  VICVectPriority6 = 0x0F;
+  VICVectPriority6 = 0x00;
   VICIntEnable     = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_UART0);
 #if 0
   VICIntSelect &= ~VIC_BIT(VIC_UART0);  //UART0 selected as IRQ
@@ -278,6 +279,7 @@ int uart0Getch(void)
 void uart1Init(unsigned int baud, unsigned char mode, unsigned char fmode)
 {
 
+
   U1IER = 0x00;                         //disable all interrupts
   U1IIR;                                //clear interrupt ID
   U1RBR;                                //clear receive register
@@ -285,6 +287,7 @@ void uart1Init(unsigned int baud, unsigned char mode, unsigned char fmode)
 
   //set the baudrate
   U1LCR = ULCR_DLAB_ENABLE;             //select divisor latches
+  //U1FDR = 0xC1; // prescaler DivAddVall = 5 MulVal = 8 ~ 115200 Baud @ 12 MHz
   U1DLL = (unsigned char)baud;                //set for baud low byte
   U1DLM = (unsigned char)(baud >> 8);         //set for baud high byte
 
@@ -295,10 +298,10 @@ void uart1Init(unsigned int baud, unsigned char mode, unsigned char fmode)
 
 #if defined(UART1_TX_INT_MODE) || defined(UART1_RX_INT_MODE)
   //initialize the interrupt vector
-  VICIntSelect    &= ~VIC_CHAN_TO_MASKLOW(VIC_CHAN_NUM_UART1);
+  VICIntSelect    &= ~VIC_CHAN_TO_MASKLOW(VIC_CHAN_NUM_UART1); // ~
   VICIntEnClr      = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_UART1);
   VICVectAddr7     = (unsigned long)uart1ISR;
-  VICVectPriority7 = 0x0F;
+  VICVectPriority7 = 0x0C;
   VICIntEnable     = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_UART1);
 #if 0
   VICIntSelect &= ~VIC_BIT(VIC_UART1);  //UART1 selected as IRQ
@@ -318,8 +321,13 @@ void uart1Init(unsigned int baud, unsigned char mode, unsigned char fmode)
   uart1_rx_extract_idx = uart1_rx_insert_idx = 0;
 
   //enable receiver interrupts
-  U1IER |= UIER_RBR;
+  //PCONP |= (1 << 4);				//UART1 used for Spektrum receiver
+  U1IER = UIER_RBR;
+
 #endif
+
+
+
 #endif
 }
 
@@ -335,9 +343,9 @@ int uart1Putch(int ch)
   if (temp == uart1_tx_extract_idx)
     return -1;                          //no room
 
-  cpsr = disableIRQ();                  //disable global interrupts
+  //cpsr = disableIRQ();                  //disable global interrupts
   U1IER &= ~UIER_THRE;                 //disable TX interrupts
-  restoreIRQ(cpsr);                     //restore global interrupts
+  //restoreIRQ(cpsr);                     //restore global interrupts
 
   //check if in process of sending data
   if (uart1_tx_running)
@@ -353,9 +361,9 @@ int uart1Putch(int ch)
     U1THR = (unsigned char)ch;
     }
 
-  cpsr = disableIRQ();                  //disable global interrupts
+  //cpsr = disableIRQ();                  //disable global interrupts
   U1IER |= UIER_THRE;                   //enable TX interrupts
-  restoreIRQ(cpsr);                     //restore global interrupts
+  //restoreIRQ(cpsr);                     //restore global interrupts
 #else
   while (!(U1LSR & ULSR_THRE))          //wait for TX buffer to empty
     continue;                           //also either WDOG() or swap()
@@ -432,9 +440,9 @@ void uart1TxFlush(void)
   U1FCR |= UFCR_TX_FIFO_RESET;          //clear the TX fifo
 
   //"Empty" the transmit buffer.
-  cpsr = disableIRQ();                  //disable global interrupts
+  //cpsr = disableIRQ();                  //disable global interrupts
   U1IER &= ~UIER_THRE;                 //disable TX interrupts
-  restoreIRQ(cpsr);                     //restore global interrupts
+  //restoreIRQ(cpsr);                     //restore global interrupts
   uart1_tx_insert_idx = uart1_tx_extract_idx = 0;
 #else
   U1FCR |= UFCR_TX_FIFO_RESET;          //clear the TX fifo

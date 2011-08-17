@@ -26,20 +26,20 @@
 
 */
 
+#include "i2c.h"
+#include "engines.h"
+#include "output.h"
+#include "compass.h"
+
+#include "../arch/lpc23xx.h"
+#include "../arch/clock-arch.h"
+#include "../arch/sys_config.h"
+#include "../arch/settings.h"
+#include "../arch/printf_p.h"
+#include "../arch/analog.h"
 
 
-#include "arch/lpc23xx.h"
-#include "arch/clock-arch.h"
-#include "arch/sys_config.h"
-#include "arch/settings.h"
-#include "arch/printf_p.h"
-#include "arch/analog.h"
-#include "io/i2c.h"
-#include "io/engines.h"
-#include "io/output.h"
-#include "io/compass.h"
-
-#include "interface/command.h"
+#include "../interface/command.h"
 
 unsigned int I2C0Status;
 
@@ -48,22 +48,22 @@ long I2CCLR = 0x28;
 
 //-------------------------------------------------------------------------------
 //Start I2C
-void I2C0Start(void)
+void I2C0_Start(void)
 {
 	I2C0CONCLR = I2CCLR; //Clear all Flags
 	I2C0CONSET |= STA;
 }
-void I2C1Start(void)
+void I2C1_Start(void)
 {
 	I2C1CONCLR = I2CCLR; //Clear all Flags
 	I2C1CONSET |= STA;
 }
-void I2C1ReStart(void)
+void I2C1_ReStart(void)
 {
 	I2C1CONCLR = I2CCLR; //Clear all Flags
 	I2C1CONSET = STA;
 }
-void I2C2Start(void)
+void I2C2_Start(void)
 {
 	I2C2CONCLR = I2CCLR; //Clear all Flags
 	I2C2CONSET |= STA;
@@ -71,19 +71,19 @@ void I2C2Start(void)
 
 //-------------------------------------------------------------------------------
 //Stop I2C
-void I2C0Stop(void)
+void I2C0_Stop(void)
 {
 	I2C0CONCLR = I2CCLR; //Clear all Flags
 	I2C0CONSET |= STO;
 	while( I2C0CONSET & STO );
 }
-void I2C1Stop(void)
+void I2C1_Stop(void)
 {
 	I2C1CONCLR = I2CCLR; //Clear all Flags
 	I2C1CONSET |= STO;
 	while( I2C1CONSET & STO );
 }
-void I2C2Stop(void)
+void I2C2_Stop(void)
 {
 	I2C2CONCLR = I2CCLR; //Clear all Flags
 	I2C2CONSET |= STO;
@@ -92,17 +92,17 @@ void I2C2Stop(void)
 
 //-------------------------------------------------------------------------------
 //I2C write byte
-void I2C0WriteChar(char payload)
+void I2C0_WriteChar(char payload)
 {
 	I2C0DAT = payload;
 	I2C0CONCLR = I2CCLR;
 }
-void I2C1WriteChar(char payload)
+void I2C1_WriteChar(char payload)
 {
 	I2C1DAT = payload;
 	I2C1CONCLR = I2CCLR;
 }
-void I2C2WriteChar(char payload)
+void I2C2_WriteChar(char payload)
 {
 	I2C2DAT = payload;
 	I2C2CONCLR = I2CCLR;
@@ -125,13 +125,13 @@ void __attribute__ ((interrupt("IRQ"))) I2C0_isr_Engine(void)
     switch (I2C0State++)
         {
         case 0:
-        		I2C0WriteChar((fcSetup.escBaseAdr +(engine*2))); //&  0x52  fcSetup.escBaseAdr
+        		I2C0_WriteChar((fcSetup.escBaseAdr +(engine*2))); //&  0x52  fcSetup.escBaseAdr
         break;
         case 1:
-        		I2C0WriteChar(PWMEngOut[engine++]);
+        		I2C0_WriteChar(PWMEngOut[engine++]);
         break;
         case 2:
-                I2C0Stop();
+                I2C0_Stop();
                 if (engine==4)
 				{
 					engine = 0;
@@ -154,25 +154,25 @@ void __attribute__ ((interrupt("IRQ"))) I2C0_isr_YGE(void)
 	    switch (I2C0State++)
 	        {
 			case 0:
-				I2C0WriteChar((char)(fcSetup.escBaseAdr+(engine++*2))); 	//	 & 0x7f
+				I2C0_WriteChar((char)(fcSetup.escBaseAdr+(engine++*2))); 	//	 & 0x7f
 			break;
 			case 1:
-				I2C0WriteChar(((char)0) & 0x7f );
+				I2C0_WriteChar(((char)0) & 0x7f );
 				ygeStartI2CCounter++;
 		    break;
 			case 2:
-				I2C0Stop();
+				I2C0_Stop();
 				if (ygeStartI2CCounter == 290) {
 			    	I2C0Mode = I2CMODE_FLIGHTMODE;
 			    	I2C0State = 0;
-			    	I2C0Start();
+			    	I2C0_Start();
 			    } else {
 			    	if (engine==ESC_EXPECTED)
 					{
 						engine = 0;
 					}
 			    	I2C0State = 0;
-			    	I2C0Start();
+			    	I2C0_Start();
 			    }
 			break;
 
@@ -185,24 +185,24 @@ void __attribute__ ((interrupt("IRQ"))) I2C0_isr_YGE(void)
 			case 0:
 				/*if (I2C0STAT != I2C_STARTUP_SEND) {
 					I2C0State = 0;
-			    	I2C0Start();
+			    	I2C0_Start();
 				} else {
 				*/
-				I2C0WriteChar((char)fcSetup.escBaseAdr+engine*2);
+				I2C0_WriteChar((char)fcSetup.escBaseAdr+engine*2);
 				//}
 			break;
 			case 1:
 				I2CGas = (char)(PWMEngOut[engine++]*120/255);
-				I2C0WriteChar((char)(I2CGas & 0x7f));
+				I2C0_WriteChar((char)(I2CGas & 0x7f));
 		    break;
 			case 2:
-				I2C0Stop();
+				I2C0_Stop();
 				if (engine==ESC_EXPECTED)
 				{
 					engine = 0;
 				}
 				I2C0State = 0;
-				I2C0Start();
+				I2C0_Start();
 			break;
 	        }
 	    break;
@@ -216,20 +216,20 @@ void __attribute__ ((interrupt("IRQ"))) I2C0_isr_YGE(void)
 
 	    		case 0:
 
-	    			I2C0WriteChar((char)ygeActualAdress);
+	    			I2C0_WriteChar((char)ygeActualAdress);
 	    		break;
 	    		case 1:
 
-	    			I2C0WriteChar((char)YGE_ADDRESSREG_WRITE);
+	    			I2C0_WriteChar((char)YGE_ADDRESSREG_WRITE);
 			    break;
 	    		case 2:
 
-					I2C0WriteChar((char)ygeTargetAdress);
+					I2C0_WriteChar((char)ygeTargetAdress);
 			    break;
 			    case 3:
-			    	I2C0Stop();
+			    	I2C0_Stop();
 			    	I2C0Mode = I2CMODE_FLIGHTMODE;
-			    	I2C0Start();
+			    	I2C0_Start();
 			    	print_uart0("FCm0;have send YGE Change Address command change from %X to %X;00#",(char)ygeActualAdress,(char)ygeTargetAdress);
 			    break;
 			    case 4:
@@ -242,22 +242,22 @@ void __attribute__ ((interrupt("IRQ"))) I2C0_isr_YGE(void)
 	    switch (I2C0State++)
 	        {
 			case 0:
-				I2C0WriteChar((char)ygeTargetAdress);
+				I2C0_WriteChar((char)ygeTargetAdress);
 			break;
 			case 1:
-				I2C0WriteChar(((char)0) & 0x7f );
+				I2C0_WriteChar(((char)0) & 0x7f );
 				ygeStartI2CCounter++;
 		    break;
 			case 2:
-				I2C0Stop();
+				I2C0_Stop();
 			    if (ygeStartI2CCounter == 35) {
 			    	//ygeStartI2CCounter = 0;
 
 			    	I2C0Mode = I2CMODE_FLIGHTMODE;
 			    	I2C0State = 0;
-			    	I2C0Start();
+			    	I2C0_Start();
 			    } else {
-			    	I2C0Start();
+			    	I2C0_Start();
 			    	I2C0State = 0;
 			    }
 			break;
@@ -272,22 +272,22 @@ void __attribute__ ((interrupt("IRQ"))) I2C0_isr_YGE(void)
 	       	switch (I2C0State++)
 		        {
 	    		case 0:
-	    			I2C0WriteChar((char)ygeActualAdress);
+	    			I2C0_WriteChar((char)ygeActualAdress);
 	    		break;
 	    		case 2:
-					I2C0WriteChar((char)ygeTargetAdress);
+					I2C0_WriteChar((char)ygeTargetAdress);
 			    break;
 			    case 3:
-			    	I2C0Start();
+			    	I2C0_Start();
 			    break;
 			    case 4:
-					I2C0WriteChar((char)ygeActualAdress);
+					I2C0_WriteChar((char)ygeActualAdress);
 			    break;
 	    		case 5:
-					I2C0WriteChar((char)255);
+					I2C0_WriteChar((char)255);
 			    break;
 			    case 6:
-			    	I2C0Stop();
+			    	I2C0_Stop();
 				break;
 				case 7:
 			    	I2C0State = 7;
@@ -306,27 +306,27 @@ void __attribute__ ((interrupt("IRQ"))) I2C1_isr_DAC(void)
 	switch (I2C1State++)
 	{
 		case 0:
-			I2C1WriteChar((char)0x98); // Address of the DAC
+			I2C1_WriteChar((char)0x98); // Address of the DAC
 		break;
 		case 1:
-			I2C1WriteChar(DACChannel[I2C1Mode]); // Update Channel I2C1Mode
+			I2C1_WriteChar(DACChannel[I2C1Mode]); // Update Channel I2C1Mode
 		break;
 		case 2:
-			I2C1WriteChar((char)ADC_offset[DACChannelAssignment[I2C1Mode]]); // Value from ADC_offset at position DACChannelAssignment[I2C1Mode]
+			I2C1_WriteChar((char)ADC_offset[DACChannelAssignment[I2C1Mode]]); // Value from ADC_offset at position DACChannelAssignment[I2C1Mode]
 		break;
 		case 3:
-			I2C1WriteChar((char)0x80); // Value
+			I2C1_WriteChar((char)0x80); // Value
 		break;
 		case 4:
 			I2C1Mode++;
 			I2C1State = 0;
-			I2C1Stop();
-			I2C1Start();
+			I2C1_Stop();
+			I2C1_Start();
 		break;
 		case 5:
 			//print_uart0("FCm0;I2C Mode %d;00#",I2C1Mode);
 			I2C1Mode = 0;
-			I2C1Stop();
+			I2C1_Stop();
 			I2C1State = 5;
 		break;
 	}
@@ -442,7 +442,7 @@ void __attribute__ ((interrupt("IRQ"))) I2C2_isr(void)
 }
 
 
-void I2C0Init(void)
+void I2C0_Init(void)
 {
 	//I2C0 on Pin: P0.27,P0.28
 		PINSEL1 |= (1<<22)|(1<<24);
@@ -465,14 +465,14 @@ void I2C0Init(void)
 		VICVectPriority9 		= 0x0E;
 		VICIntEnable     		= VIC_CHAN_TO_MASK(VIC_CHAN_NUM_I2C0);
 
-		enginesOff();
+		engines_Off();
 
 		I2C0CONCLR 				= 0x28; //Clear all Flags
 		I2C0CONSET 				|= I2EN; //I2C Enable
 }
 
 
-void I2C1Init(void)
+void I2C1_Init(void)
 {
 	//SDA1 P0.0(66), SCL1 P0.1(67)
 	I2C1State = 0;
@@ -495,7 +495,7 @@ void I2C1Init(void)
 
 }
 
-void I2C2Init(void)
+void I2C2_Init(void)
 {
 	I2C2State = 0;
 

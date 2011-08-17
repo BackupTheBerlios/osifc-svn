@@ -26,12 +26,12 @@
 
 */
 
-#include "arch/settings.h"
-#include "arch/iapcore.h"
-#include "arch/beeper.h"
-#include "io/pwmin.h"
-#include "io/compass.h"
-#include "interface/command.h"
+#include "settings.h"
+#include "iapcore.h"
+#include "beeper.h"
+#include "../io/pwmin.h"
+#include "../io/compass.h"
+#include "../interface/command.h"
 
 char slot = 0; //for now this is hard coded slot can be 0 to 3
 
@@ -99,13 +99,11 @@ void setFcSetupDefault(void)
 	setupCache.nickServoOn 							= 0;
 	setupCache.rollServoOn 							= 0;
 
-
 	setupCache.pid_throttleOffset 					= 0;
 	setupCache.pid_PitchStickFact 					= 0;
-	setupCache.pd_PitchStickFact 					= 0;
-	setupCache.pd_throttleOffset 					= 0;
+
 	setupCache.sysGasMin 							= 5;
-	setupCache.sysRcGasMax 							= 120;
+
 	setupCache.sysEmergencyGas 						= 40;
 	setupCache.sysEmergencyGasDuration 				= 40;
 	setupCache.sysLowVoltage 						= 95;
@@ -139,27 +137,15 @@ void setFcSetupDefault(void)
 	setupCache.Y_sensorBias 						= 0;
 	setupCache.Y_sensorBiasNeg 						= 0;
 	setupCache.pid_GyroPitchFact 					= 20;
-	setupCache.pid_StickFact 						= 50;
+	setupCache.pid_NickStickFact 					= 50;
+	setupCache.pid_RollStickFact 					= 50;
 	setupCache.pid_PitchThrottleFact 				= 80;
 	setupCache.pid_PitchP 							= 60;
 	setupCache.pid_PitchI 							= 13;
 	setupCache.pid_PitchD 							= 20;
 	setupCache.PitchSensorBias 						= 0;
 	setupCache.PitchSensorBiasNeg 					= 0;
-	setupCache.pd_X_P_Fact 							= 0;
-	setupCache.pd_X_D_Fact 							= 0;
-	setupCache.pd_Y_P_Fact 							= 0;
-	setupCache.pd_Y_D_Fact 							= 0;
-	setupCache.pd_PitchP 							= 0;
-	setupCache.pd_PitchD 							= 0;
-	setupCache.pd_X_AccX_Fact 						= 0;
-	setupCache.pd_Y_AccY_Fact 						= 0;
-	setupCache.pd_X_GyroSumFact 					= 0;
-	setupCache.pd_X_PitchSumFact 					= 0;
-	setupCache.pd_Y_GyroSumFact 					= 0;
-	setupCache.pd_Y_PitchSumFact 					= 0;
-	setupCache.pd_GyroPitchFact 					= 0;
-	setupCache.pd_StickFact 						= 0;
+
 	setupCache.pid_X_GyroACCFactMin 				= 8;
 	setupCache.pid_X_GyroACCFactMax 				= 8;
 	setupCache.pid_X_IntegralMin 					= 20;
@@ -175,9 +161,9 @@ void setFcSetupDefault(void)
 	setupCache.escBaseAdr 							= 0x52;
 	setupCache.escAdrHop 							= 2;
 	setupCache.AdcClockDiv							= 120;
-	setupCache.calcCycle							= 90;
+	setupCache.calcCycle							= 180;
 	setupCache.componentCycle						= 50;
-	setupCache.telemetrieCycle						= 10;
+	setupCache.telemetrieCycle						= 0;
 	setupCache.MaxMultichannel						= 7;
 	setupCache.MaxValue								= 30;
 	setupCache.MinValue								= 29;
@@ -296,26 +282,8 @@ void setToInSettings(void)
 	//the numbers chosen to be devided by or multiplicated by are found by
 	//try and error this may change over time but its not really worth to be a volatile setting
 
-	fcSetup.pd_GyroPitchFact			= (float)setupCache.pd_GyroPitchFact/100;
-	fcSetup.pd_GyroStickFact			= (float)setupCache.pd_StickFact/100;
-	fcSetup.pd_PitchStickFact			= (float)setupCache.pd_PitchStickFact/100;
-	fcSetup.pd_X_sensorFact				= (float)setupCache.pd_X_GyroSumFact/100;
-	fcSetup.pd_Y_sensorFact				= (float)setupCache.pd_Y_GyroSumFact/100;
-	fcSetup.pd_X_PitchFact  			= (float)setupCache.pd_X_PitchSumFact/100;
-	fcSetup.pd_Y_PitchFact  			= (float)setupCache.pd_Y_PitchSumFact/100;
-	fcSetup.pd_X_AccX_Fact				= (float)setupCache.pd_X_AccX_Fact/10;
-	fcSetup.pd_Y_AccY_Fact				= (float)setupCache.pd_Y_AccY_Fact/10;
-	fcSetup.pd_X_P						= (float)setupCache.pd_X_P_Fact/100;
-	fcSetup.pd_X_D						= (float)setupCache.pd_X_D_Fact/100;
-	fcSetup.pd_Y_P						= (float)setupCache.pd_Y_P_Fact/100;
-	fcSetup.pd_Y_D						= (float)setupCache.pd_Y_D_Fact/100;
-	fcSetup.pd_PitchP 					= (float)setupCache.pd_PitchP/100;
-	fcSetup.pd_PitchD					= (float)setupCache.pd_PitchD/100;
-	fcSetup.pd_throttleOffset			= setupCache.pd_throttleOffset;
-	fcSetup.pd_PitchStickFact			= setupCache.pd_PitchStickFact;
-
-
-	fcSetup.pid_StickFact				= (float)setupCache.pid_StickFact/10;
+	fcSetup.pid_NickStickFact			= (float)setupCache.pid_NickStickFact/10;
+	fcSetup.pid_RollStickFact			= (float)setupCache.pid_RollStickFact/10;
 	fcSetup.pid_throttleOffset			= setupCache.pid_throttleOffset;
 
 	fcSetup.pid_PitchP					= (float)setupCache.pid_PitchP/100;
@@ -388,7 +356,7 @@ void setToInSettings(void)
 	fcSetup.calcMode					= setupCache.calcMode;
 	fcSetup.sysGasMin					= setupCache.sysGasMin;
 	fcSetup.sysGasMax			 	 	= setupCache.sysGasMax;
-	fcSetup.sysRcGasMax					= setupCache.sysRcGasMax;
+
 	fcSetup.sysEmergencyGas				= setupCache.sysEmergencyGas;
 	fcSetup.sysEmergencyGasDuration		= setupCache.sysEmergencyGasDuration;
 
@@ -474,8 +442,5 @@ void setToInSettings(void)
 	PWM_user6  		 					= setupCache.chan[9];
 	PWM_user7  							= setupCache.chan[10];
 	PWM_user8  		 					= setupCache.chan[11];
-
-
-
 
 }

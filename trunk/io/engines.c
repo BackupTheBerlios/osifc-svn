@@ -25,15 +25,15 @@
 
 
 */
-#include "arch/settings.h"
-#include "io/i2c.h"
-#include "io/engines.h"
-#include "interface/command.h"
+#include "engines.h"
+#include "i2c.h"
+#include "../arch/settings.h"
+#include "../interface/command.h"
 
 
 //-------------------------------------------------------------------------------
 //Stop Engines
-void enginesOff(void)
+void engines_Off(void)
 {
 	PWMEngOut[FRONTENGINE] = 0;
 	PWMEngOut[RIGHTENGINE] = 0;
@@ -44,7 +44,7 @@ void enginesOff(void)
 
 //-------------------------------------------------------------------------------
 //Start Engines
-void engineWarmup(void)
+void engine_Warmup(void)
 {
 	PWMEngOut[LEFTENGINE]  = fcSetup.sysGasMin;
 	PWMEngOut[RIGHTENGINE] = fcSetup.sysGasMin;

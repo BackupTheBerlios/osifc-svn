@@ -35,7 +35,7 @@
 #include "lpc23xx.h"
 #include "sys_config.h"
 
-#include "io/pwmin.h"
+#include "../io/pwmin.h"
 //-----------------------------------------------------------------------------
 
 void tc0_isr(void);
@@ -79,7 +79,8 @@ volatile unsigned int timer_counter3;
 #define TxIR_CR2	(1<<6)
 #define TxIR_CR3	(1<<7)
 
-typedef struct {
+typedef struct __attribute__ ((__aligned__))
+{
 	unsigned long RTC_Sec;     /* Second value - [0,59] */
 	unsigned long RTC_Min;     /* Minute value - [0,59] */
 	unsigned long RTC_Hour;    /* Hour value - [0,23] */
@@ -127,36 +128,15 @@ typedef struct {
 
 
 void RTC_ISR (void);
-void RTCInit( void );
-void RTCStart( void );
-void RTCStop( void );
+void RTC_Init( void );
+void RTC_Start( void );
+void RTC_Stop( void );
 void RTC_CTCReset( void );
-void RTCSetTime( RTCTime );
-RTCTime RTCGetTime( void );
-void RTCSetAlarm( RTCTime );
-void RTCSetAlarmMask( unsigned long AlarmMask );
-
-
-
-
-
-
+void RTC_Set_Time( RTCTime );
+RTCTime RTC_Get_Time( void );
+void RTC_Set_Alarm( RTCTime );
+void RTC_Set_Alarm_Mask( unsigned long AlarmMask );
 
 
 #endif
 
-/*
-//Capture Control Register
-#define TxCCR_CAP0RE	(1<<0)
-#define TxCCR_CAP0FE	(1<<1)
-#define TxCCR_CAP0I		(1<<2)
-#define TxCCR_CAP1RE	(1<<3)
-#define TxCCR_CAP1FE	(1<<4)
-#define TxCCR_CAP1I		(1<<5)
-#define TxCCR_CAP2RE	(1<<6)
-#define TxCCR_CAP2FE	(1<<7)
-#define TxCCR_CAP2I		(1<<8)
-#define TxCCR_CAP3RE	(1<<9)
-#define TxCCR_CAP3FE	(1<<10)
-#define TxCCR_CAP3I		(1<<11)
-*/

@@ -26,11 +26,14 @@
 
 */
 
-#include "arch/analog.h"
-#include "arch/led.h"
-#include "io/i2c.h"
-#include "io/output.h"
-#include "arch/settings.h"
+#include "analog.h"
+#include "led.h"
+#include "settings.h"
+#include "../io/pwmin.h"
+#include "../io/i2c.h"
+#include "../io/output.h"
+
+
 
 
 float driftFactor = 0.01;
@@ -159,7 +162,7 @@ void ADCGyroSetup(int ADCChannel)
 		ADC_offset[ADCChannel]--;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<1000;tmp++){asm("nop");};
 			ReadADC();
@@ -177,7 +180,7 @@ void ADCGyroSetup(int ADCChannel)
 		ADC_offset[ADCChannel]++;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<1000;tmp++){asm("nop");};
 			ReadADC();
@@ -191,7 +194,7 @@ void ADCGyroSetup(int ADCChannel)
 
 	}
 	for(tmp = 0;tmp<10000;tmp++){asm("nop");};
-	I2C1Stop();
+	I2C1_Stop();
 }
 
 
@@ -207,7 +210,7 @@ void ADCPressureSetup(int ADCChannel)
 	ADC_offset[ADCChannel] = 200;
 	I2C1State = 0;
 	I2C1Mode = 0;
-	I2C1Start();
+	I2C1_Start();
 
 
 	while (ADCTemp < 1000)
@@ -215,7 +218,7 @@ void ADCPressureSetup(int ADCChannel)
 		ADC_offset[ADCChannel]--;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<10000;tmp++){asm("nop");};
 			ReadADC();
@@ -234,7 +237,7 @@ void ADCPressureSetup(int ADCChannel)
 		ADC_offset[ADCChannel]++;
 		I2C1State = 0;
 		I2C1Mode = 0;
-		I2C1Start();
+		I2C1_Start();
 		for(ADCRounds = 0;ADCRounds<50;ADCRounds++){
 			for(tmp = 0;tmp<10000;tmp++){asm("nop");};
 			ReadADC();
@@ -249,7 +252,7 @@ void ADCPressureSetup(int ADCChannel)
 
 	print_uart0("FCm0;ADC offset Low %d = %d value %d;00#",ADCChannel,ADC_offset[ADCChannel],ADCTemp);
 	for(tmp = 0;tmp<100000;tmp++){asm("nop");};
-	I2C1Stop();
+	I2C1_Stop();
 }
 
 void GyroInit(void)
@@ -291,7 +294,7 @@ void ADCStandstillValues(void)
 	ADC_standStill[ADC_ROLL]    = (int)ADC_runtime[ADC_ROLL];
 	ADC_standStill[ADC_ACCX]    = (int)(ADC_runtime[ADC_ACCX] + fcSetup.X_sensorBias);
 	ADC_standStill[ADC_ACCY]    = (int)(ADC_runtime[ADC_ACCY] + fcSetup.Y_sensorBias);
-	//ADC_standStill[ADC_ACCZ]    = (int)ADC_runtime[ADC_ACCZ];
+	ADC_standStill[ADC_ACCZ]    = (int)ADC_runtime[ADC_ACCZ];
 	ADC_standStill[AIRPRESSURE] = (int)ADC_runtime[AIRPRESSURE];
 	LED3_OFF;
 	initSensorDrift();

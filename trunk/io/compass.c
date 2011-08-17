@@ -25,15 +25,15 @@
 
 
 */
+#include "compass.h"
+#include "spi.h"
+#include "io.h"
+#include "i2c.h"
+#include "../arch/settings.h"
+#include "../arch/led.h"
 
-#include "arch/settings.h"
-#include "arch/led.h"
-#include "io/compass.h"
-#include "io/spi.h"
-#include "io/io.h"
-#include "io/i2c.h"
-#include "math.h"
-#include "nav/mm3parser.h"
+#include <math.h>
+#include "../nav/mm3parser.h"
 
 
 
@@ -63,7 +63,7 @@ void setHMC5843Continous(void)
 	HMCBuffer[2] = 0x00;
 	setI2CRlWl(0,2);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 void setHMC5843Rate(void)
@@ -74,7 +74,7 @@ void setHMC5843Rate(void)
 	HMCBuffer[2] = 0x4;
 	setI2CRlWl(0,2);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 void setHMC5843Gain(void)
@@ -85,7 +85,7 @@ void setHMC5843Gain(void)
 	HMCBuffer[2] = 0x07;
 	setI2CRlWl(0,2);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 
@@ -96,7 +96,7 @@ void initialreadHMC5843(void)
 	HMCBuffer[0] = 0x3D;
 	setI2CRlWl(6,0);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 }
 
 void readHMC5843(void)
@@ -104,7 +104,7 @@ void readHMC5843(void)
 	HMCBuffer[0] = 0x3D;
 	setI2CRlWl(6,0);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 	led_switch(1);
 }
 
@@ -152,7 +152,7 @@ void initHMC6343(void)
 	setI2CRlWl(0,1);
 	initI2CRdWr();
 	led_switch(3);
-	I2C1Start();
+	I2C1_Start();
 }
 
 void readHMC6343(void)
@@ -160,8 +160,25 @@ void readHMC6343(void)
 	HMCBuffer[0] = 0x33;
 	setI2CRlWl(6,0);
 	initI2CRdWr();
-	I2C1Start();
+	I2C1_Start();
 	led_switch(2);
 }
 
+
+//print_uart0("FCm0;init HMC;00#");
+	//I2C1InitHMCMode();
+
+	//setHMC5843Gain();
+	//initHMC6343();
+
+	//setHMC5843Rate();
+
+	//setHMCGain();
+
+	//setHMC5843Continous();
+
+
+	//for(int tmp = 0;tmp<1000000;tmp++){asm("nop");};
+	//print_uart0("FCm0;read HMC;00#");
+	//initialreadHMC5843();
 

@@ -99,7 +99,7 @@ char *NMEAGPGGAtimeRef = (char *)&NMEAGPGGAtimeRuntime;
 
 
 
-const unsigned char token = 0x2c;
+const unsigned char comma = 0x2c;
 const unsigned char dot = 0x2e;
 const unsigned char NMEAmaxmsgLen = 10;
 
@@ -154,7 +154,7 @@ char checkDot(unsigned char c);
 char checkDot(unsigned char c)
 {
 	char myReturn = 0;
-	if (c == 0x24){
+	if (c == 0x2E){
 		dotCount = 1;
 		myReturn = 1;
 	}
@@ -192,7 +192,7 @@ char NMEAFillfloat(char);
 char NMEAFillfloat(char c)
 {
 	char myReturn = 0;
-	if (c != token) {
+	if (c != comma) {
 		if (NMEAmsgLen++ <= floatlen) {
 			if (checkDot(c) == 0)
 				NMEATempfloat = NMEATempfloat * 10 + ((char)c - 0x30);
@@ -211,7 +211,7 @@ char NMEAFillchar(char);
 char NMEAFillchar(char c)
 {
 	char myReturn = 0;
-	if (c != token) {
+	if (c != comma) {
 		if (NMEAmsgLen++ <= charlen) {
 			*NMEATempref++ = c;
 		} else {
@@ -229,7 +229,7 @@ char NMEAFillint(char);
 char NMEAFillint(char c)
 {
 	char myReturn = 0;
-	if (c != token) {
+	if (c != comma) {
 		if (NMEAmsgLen++ <= intlen) {
 			NMEATempInt = NMEATempInt * 10 + ((char)c - 0x30);
 		} else {
@@ -247,7 +247,7 @@ char NMEAFilllong(char);
 char NMEAFilllong(char c)
 {
 	char myReturn = 0;
-	if (c != token) {
+	if (c != comma) {
 		if (NMEAmsgLen++ <= longlen) {
 			NMEATemp = NMEATemp * 10 + ((char)c - 0x30);
 		} else {
@@ -268,7 +268,7 @@ float getNMEAfloat(float value)
 {
 	if(dotCount == 0)
 		dotCount = 1;
-	return (value/dotCount)*multiplier;
+	return (float)(value/dotCount)*multiplier;
 }
 
 
@@ -282,7 +282,7 @@ void parseNMEA (unsigned char c){
 		LED2_ON;
 		tmp = 0;
 	}
-	print_uart0("%2x",c);
+	//print_uart0("%2x",c);
 	if (NMEAdone == 0) {
 		switch (NMEAState)
 		{
@@ -325,7 +325,7 @@ void parseNMEA (unsigned char c){
 		break;
 
 		case NMEA_SYNC6:
-			if (c == token) {
+			if (c == comma) {
 				NMEAState = NMEA_FILLING;
 				NMEAmessageNum = 0;
 				clearNMEATemp();
@@ -478,7 +478,7 @@ void parseNMEA (unsigned char c){
 			if (NMEA_CK_A == NMEA_CK_B)	{		//CS OK last Byte-> packet received successfully
 
 				NMEAdone = 0;				// OK NMEA receive Flag
-				//led_switch(4);
+				led_switch(4);
 
 			}
 			NMEAState = NMEA_EMPTY;		//ready for next packet

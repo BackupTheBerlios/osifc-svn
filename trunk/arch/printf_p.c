@@ -134,7 +134,7 @@ L	The argument is interpreted as a long double (only applies to floating point s
 #include <string.h>
 #include <stdarg.h>
 
-#include "io/uart.h"
+#include "../io/uart.h"
 #include "printf_p.h"
 #include "settings.h"
 

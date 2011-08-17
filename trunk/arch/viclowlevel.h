@@ -28,6 +28,9 @@
 #ifndef VICLOWLEVEL_H
 #define VICLOWLEVEL_H
 
+void ISR_ENTRY(void);
+void ISR_EXIT(void);
+
 unsigned enableIRQ(void);
 unsigned disableIRQ(void);
 unsigned enableFIQ(void);

@@ -36,21 +36,6 @@
 #define CRP3  0x43218765
 #define NOCRP CRP
 
-void init_VIC(void);
-void reset_GPIO( void );
-void init_PLL(void);
-void init_Powr(void);
-void init_LowLevelSystems(void);
-void init_ADC_HW(void);
-void init_LED(void);
-void init_PWMinChannels(void);
-void init_sspi0(void);
-void init_spi1(void);
-void init_SDcard(void);
-void init_PWM(void);
-void init_uart(void);
-void init_RTC(void);
-void init_MM3(void);
 void init_system(void);
 
 #endif /*INIT_H*/

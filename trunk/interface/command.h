@@ -29,11 +29,12 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-#include "arch/printf_p.h"
-#include "io/output.h"
+#include "../arch/printf_p.h"
+#include "../io/output.h"
 
 
 volatile unsigned char	cmdState;
+volatile unsigned char	satState;
 volatile unsigned char	SettingsReceived;
 
 #define	CMD_EMPTY					0
@@ -67,11 +68,25 @@ volatile unsigned char	SettingsReceived;
 #define	CMD_NUM1					1
 
 
+#define CMD_PRINT_DEBUG 			0
+#define CMD_PRINT_DEBUG1 			1
+#define CMD_PRINT_DEBUG2 			2
+#define CMD_PRINT_DEBUG3 			3
+#define CMD_PRINT_DEBUG4 			4
+
+#define CMD_READ_CALIB_COMPASS 		6
+#define CMD_WRITE_CALIB_COMPASS 	7
+#define CMD_START_CALIB_COMPASS 	8
+#define CMD_STOP_CALIB_COMPASS 		9
+
 
 #define	CMD_SYNC_CHAR1				0x46
 #define	CMD_SYNC_CHAR2				0x43
 #define	CMD_SYNC_CHAR3				0x30
 #define	CMD_SYNC_DIV				0x26
+
+#define SAT_SYNC_CHAR1				0x03
+#define SAT_SYNC_CHAR2				0x01
 
 #define	CMD_DEC_NUM0				0x30
 #define	CMD_DEC_NUM1				0x31
@@ -95,6 +110,30 @@ volatile unsigned char	SettingsReceived;
 #define	CMD_STOP_CHAR				0x23		//in memory of Karl
 
 
+#define SAT_START_1					0x03
+#define SAT_START_2					0x01
+
+#define SAT_SYNC_1					1
+#define SAT_SYNC_2					2
+#define SAT_AILE_1					3
+#define SAT_AILE_2					4
+#define SAT_FLAPS_1					5
+#define SAT_FLAPS_2					6
+#define SAT_GEAR_1					7
+#define SAT_GEAR_2					8
+#define SAT_ELEV_1					9
+#define SAT_ELEV_2					10
+#define SAT_AUX2_1					11
+#define SAT_AUX2_2					12
+#define SAT_THRO_1					13
+#define SAT_THRO_2					14
+#define SAT_RUDD_1					15
+#define SAT_RUDD_2					16
+
+#define satMAX 						7
+
+volatile signed int SAT_channel[satMAX];
+
 
 volatile unsigned char commandType;  			//which type of command are we retriving
 volatile unsigned char commandNum;	  			//which subType or function of the commandType
@@ -110,9 +149,11 @@ volatile unsigned char settingNumRequested; 	//which settingNum to be read 0-15 
 volatile unsigned char setCmd;					//which type of setupRequest we got
 
 void checkSerialIn (unsigned char c);
+void readSpektrum(unsigned char c);
 
 void checkCmd(void);
 void updateAcdRate(void);
 void checkI2C(void);
+
 
 #endif /*COMMAND_H*/

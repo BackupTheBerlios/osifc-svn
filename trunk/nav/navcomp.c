@@ -25,3 +25,30 @@
 
 
 */
+#include "navcomp.h"
+
+char compassReady;
+char compassBusy;
+
+
+char getCompassStatus(void)
+{
+	return compassReady;
+}
+
+void setCompassStatus(char status)
+{
+	compassReady = status;
+}
+
+char getCompassBusy(void)
+{
+	return compassBusy;
+}
+
+void setCompassBusy(char status)
+{
+	compassBusy = status;
+}
+
+

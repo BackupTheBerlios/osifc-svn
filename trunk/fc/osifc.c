@@ -35,14 +35,13 @@
 #include <string.h>
 
 
-#include "arch/settings.h"
-#include "math/pidfc.h"
-#include "math/pdfc.h"
-#include "io/engines.h"
-#include "interface/command.h"
-#include "io/i2c.h"
-#include "arch/analog.h"
-#include "io/pwmout.h"
+#include "../arch/settings.h"
+#include "../math/pidfc.h"
+#include "../io/engines.h"
+#include "../interface/command.h"
+#include "../io/i2c.h"
+#include "../arch/analog.h"
+#include "../io/pwmout.h"
 //-------------------------------------------------------------------------------
 //
 void osiFlightControl(void)
@@ -50,9 +49,6 @@ void osiFlightControl(void)
 
 	switch (fcSetup.calcMode)
 	{
-		case PD_Mode:
-			pdDriver();
-		break;
 		case PID_MODE:
 			pidDriver();
 		break;
@@ -92,8 +88,8 @@ void initFCRuntime (void) {
 	Y_DifferenceFact = 0;
 	Engine_value = 0;
 
-	enginesOff();
-	initCamServos();
+	engines_Off();
+	PWMOUT_init_Cam_Servos();
 	commandRetrived = 0;
 	SettingsReceived = 0;
 

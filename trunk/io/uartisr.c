@@ -25,12 +25,14 @@
 
 
 */
-
-#include "arch/printf_p.h"
-#include "io/uartisr.h"
-#include "io/uart.h"
-#include "nav/osigps.h"
-#include "interface/command.h"
+#include "uartisr.h"
+#include "uart.h"
+#include "../arch/viclowlevel.h"
+#include "../arch/printf_p.h"
+#include "../arch/sys_config.h"
+#include "../arch/led.h"
+#include "../nav/osigps.h"
+#include "../interface/command.h"
 
 
 #if UART0_SUPPORT
@@ -43,7 +45,7 @@ extern int uart0_rx_insert_idx, uart0_rx_extract_idx;
 #ifdef UART0_TX_INT_MODE
 extern char  uart0_tx_buffer[UART0_TX_BUFFER_SIZE];
 extern int uart0_tx_insert_idx, uart0_tx_extract_idx;
-extern int      uart0_tx_running;
+extern int uart0_tx_running;
 #endif //UART0_TX_INT_MODE
 
 #if defined(UART0_TX_INT_MODE) || defined(UART0_RX_INT_MODE)
@@ -55,6 +57,7 @@ void __attribute__ ((interrupt("IRQ"))) uart0ISR(void)
 {
 	volatile char iid;
 	volatile char temp;
+	//  ISR_ENTRY();
   //loop until not more interrupt sources
   while (((iid = U0IIR) & UIIR_NO_INT) == 0)
     {
@@ -108,7 +111,7 @@ void __attribute__ ((interrupt("IRQ"))) uart0ISR(void)
     }
 
   VICVectAddr = 0;             //clear this interrupt from the VIC
-
+  //ISR_EXIT();
 }
 #endif //defined(UART0_TX_INT_MODE) || defined(UART0_RX_INT_MODE)
 #endif //UART0_SUPPORT
@@ -131,19 +134,20 @@ extern int      uart1_tx_running;
 
 void uart1ISR(void)
 {
-  char iid;
-
-  //perform proper ISR entry so thumb-interwork works properly
-  ISR_ENTRY();
-
+  volatile char temp;
+  volatile char iid;
+  //ISR_ENTRY();
+  //print_uart0("FCm0;IR Status %d ;00#",U1IIR);
   //loop until not more interrupt sources
   while (((iid = U1IIR) & UIIR_NO_INT) == 0)
     {
+
     //identify & process the highest priority interrupt
     switch (iid & UIIR_ID_MASK)
       {
       case UIIR_RLS_INT:                //Receive Line Status
         U1LSR;                          //read LSR to clear
+
         break;
 
 #ifdef UART1_RX_INT_MODE
@@ -151,19 +155,24 @@ void uart1ISR(void)
       case UIIR_RDA_INT:                //Receive Data Available
         do
           {
-          int temp;
 
+        	LED4_ON;
+        	//LED1_OFF;
           //calc next insert index & store character
-          temp = (uart1_rx_insert_idx + 1) % UART1_RX_BUFFER_SIZE;
-          uart1_rx_buffer[uart1_rx_insert_idx] = U1RBR;
+          // temp = (uart1_rx_insert_idx + 1) % UART1_RX_BUFFER_SIZE;
+          //uart1_rx_buffer[uart1_rx_insert_idx] = U1RBR;
+        	//print_uart0("FCm0;was here 6;00#");
+          temp = U1RBR;
 
+          parseGPS((unsigned char)temp);
           //check for more room in queue
-          if (temp != uart1_rx_extract_idx)
-            uart1_rx_insert_idx = temp; //update insert index
+          //if (temp != uart1_rx_extract_idx)
+          //  uart1_rx_insert_idx = temp; //update insert index
           }
         while (U1LSR & ULSR_RDR);
 
         break;
+
 #endif
 
 #ifdef UART1_TX_INT_MODE
@@ -189,18 +198,20 @@ void uart1ISR(void)
 
       case UIIR_MS_INT:                 //MODEM Status
         U1MSR;                          //read MSR to clear
+
         break;
 
       default:                          //Unknown
-        U1LSR;
-        U1RBR;
-        U1MSR;
+
+        U1LSR = 0;
+        U1RBR = 0;
+        U1MSR = 0;
         break;
       }
     }
-
-  VICVectAddr = 0;             //clear this interrupt from the VIC
-  ISR_EXIT();                           //recover registers and return
+  LED3_ON;
+  VICVectAddr = (unsigned long)0;             //clear this interrupt from the VIC
+  //ISR_EXIT();
 }
 #endif //defined(UART1_TX_INT_MODE) || defined(UART1_RX_INT_MODE)
 #endif //UART1_SUPPORT
@@ -224,9 +235,9 @@ extern int      uart2_tx_running;
 void __attribute__ ((interrupt("IRQ"))) uart2ISR(void)
 {
 	volatile char iid;
+    volatile unsigned char temp;
 
-
-
+    //ISR_ENTRY();
   //loop until not more interrupt sources
   while (((iid = U2IIR) & UIIR_NO_INT) == 0)
     {
@@ -242,12 +253,12 @@ void __attribute__ ((interrupt("IRQ"))) uart2ISR(void)
       case UIIR_RDA_INT:                //Receive Data Available
         do
           {
-        volatile unsigned char temp;
+
 
           //calc next insert index & store character
           temp = U2RBR;
 
-          parseGPS((unsigned char)temp);
+          //parseGPS((unsigned char)temp);
 		  //no queue since we just take it into usage and dont use it later..
 		  //this is good as long as we see comunication is not harming mission critical systems
           }
@@ -285,7 +296,7 @@ void __attribute__ ((interrupt("IRQ"))) uart2ISR(void)
     }
 
   VICVectAddr = 0;             //clear this interrupt from the VIC
-
+  //ISR_EXIT();
 }
 #endif //defined(UART2_TX_INT_MODE) || defined(UART2_RX_INT_MODE)
 
@@ -310,7 +321,7 @@ extern int      uart3_tx_running;
 void __attribute__ ((interrupt("IRQ"))) uart3ISR(void)
 {
 	volatile char iid;
-
+	//  ISR_ENTRY();
   //loop until not more interrupt sources
   while (((iid = U3IIR) & UIIR_NO_INT) == 0)
     {
@@ -329,7 +340,8 @@ void __attribute__ ((interrupt("IRQ"))) uart3ISR(void)
         volatile char temp;
           temp = U3RBR;
          // print_uart3("%2x",temp);
-          checkSerialIn(temp);
+          //checkSerialIn(temp);
+          readSpektrum(temp);
          }
         while (U3LSR & ULSR_RDR);
 
@@ -365,7 +377,7 @@ void __attribute__ ((interrupt("IRQ"))) uart3ISR(void)
     }
 
   VICVectAddr = 0;             //clear this interrupt from the VIC
-
+  //ISR_EXIT();
 }
 #endif //defined(UART3_TX_INT_MODE) || defined(UART3_RX_INT_MODE)
 #endif //UART3_SUPPORT

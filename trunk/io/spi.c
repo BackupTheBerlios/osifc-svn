@@ -25,12 +25,12 @@
 
 
 */
-#include "arch/lpc23xx.h"			/* LPC23xx/24xx Peripheral Registers	*/
-#include "arch/sys_config.h"
-#include "io/compass.h"
-#include "io/io.h"
-#include "io/spi.h"
-#include "nav/mm3parser.h"
+#include "spi.h"
+#include "compass.h"
+#include "io.h"
+#include "../arch/lpc23xx.h"			/* LPC23xx/24xx Peripheral Registers	*/
+#include "../arch/sys_config.h"
+#include "../nav/mm3parser.h"
 
 
 /* statistics of all the interrupts */
@@ -72,7 +72,7 @@ void initSSPI0IRQ(void)
 	   VICIntSelect    &= ~VIC_CHAN_TO_MASKLOW(VIC_CHAN_NUM_SSP0);
 	   VICIntEnClr      = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_SSP0);
 	   VICVectAddr10     = (unsigned long)spi0_isr;
-	   VICVectPriority10 = 0x0F;
+	   VICVectPriority10 = 0x00;
 	   VICIntEnable     = VIC_CHAN_TO_MASK(VIC_CHAN_NUM_SSP0);
 
 }

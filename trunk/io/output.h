@@ -30,6 +30,7 @@
 #ifndef OUTPUT_H_
 #define OUTPUT_H_
 
+#include "../arch/sys_config.h"
 
 unsigned int CycleCount;
 unsigned int lastCycleCount;
@@ -57,6 +58,7 @@ void printDebug7(void);
 void printSettings(void);
 
 void printTelemetrie(void);
+void printCalibCompassValues(void);
 
 void printLoadSetting(char setNum);
 

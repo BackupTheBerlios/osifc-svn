@@ -33,18 +33,18 @@
 
 
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 
-	unsigned char	pd_PitchP;						//Gyr P
+	unsigned char	pd_PitchP;					//Gyr P
 	unsigned char	pd_PitchD;
 
-	unsigned char	sysGasMin;						//Minimum Gas after Engine startup or with no Gas from RC
-	unsigned char	sysGasMax;						//Maximum Gas level reachable all in also
-													//including system Gas for stabilisation
-	unsigned char	sysRcGasMax;					//Maximum Gas level reachable via RC
-	unsigned char	sysEmergencyGas;				//Gas value in emergency situation
-	unsigned char	sysEmergencyGasDuration;		//how long to hold Gas in emergency
+	unsigned char	sysGasMin;					//Minimum Gas after Engine startup or with no Gas from RC
+	unsigned char	sysGasMax;					//Maximum Gas level reachable all in also
+												//including system Gas for stabilisation
+
+	unsigned char	sysEmergencyGas;			//Gas value in emergency situation
+	unsigned char	sysEmergencyGasDuration;	//how long to hold Gas in emergency
 
 	unsigned char	nickServoOn;				//nick servo enable with 1
 	unsigned char	nickServoChan;				//nick servo RC Channel
@@ -67,6 +67,9 @@ typedef struct
 	unsigned char	sysMainDirection;			//x or + setup 0, 45, 90....
 	unsigned char	serialControl;				//control via serial port
 
+	unsigned char	ReceiverType;				//type of Receiver
+												//0 = PPMJ Receiver
+												//1= Spektrum serial Receiver
 
 	unsigned char	PWMMode;					//PWMMode Mode
 												//0 = Sum signal
@@ -97,7 +100,7 @@ typedef struct
 												//4 experimental mode (no working setup yet) use with caution there you
 												// have to add your own code first
 
-	unsigned char	pd_throttleOffset;
+
 	unsigned char	pid_throttleOffset;
 
 	unsigned char	escType;
@@ -153,16 +156,11 @@ typedef struct
 	float 	pid_X_AccX_Fact;
 	float 	pid_Y_AccY_Fact;
 
-	float 	pd_X_AccX_Fact;
-	float 	pd_Y_AccY_Fact;
-
-
-
-
 	float	pid_GyroPitchFact;
-	float	pid_StickFact;
+	float	pid_NickStickFact;
+	float	pid_RollStickFact;
 	float	pid_PitchStickFact;
-
+	float	pid_HeadingHold;
 
 	float	pid_X_GyroFact;
 	float	pid_X_PitchFact;
@@ -172,27 +170,13 @@ typedef struct
 	float	pid_Y_PitchFact;
 	float	pid_Y_GyroACCFact;
 
-	float 	pd_X_P;
-	float 	pd_X_D;
-	float 	pd_Y_P;
-	float 	pd_Y_D;
-
-	float	pd_GyroPitchFact;
-	float	pd_GyroStickFact;
-	float	pd_PitchStickFact;
-	float 	pd_stickFact;
-	float	pd_X_sensorFact;
-	float	pd_X_PitchFact;
-	float	pd_Y_sensorFact;
-	float	pd_Y_PitchFact;
-
 	unsigned char	chan[12];					//RC setup
 	unsigned char	components[3];				//component setup barometer, compass, gps
 	unsigned char userSetting[20];				//20 User set Values not yet available
 
 }FLIGHTSETTINGS;
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 	int calcCycle;
 	int telemetrieCycle;
@@ -200,7 +184,7 @@ typedef struct
 	char AdcClockDiv;
 }CYCLECONTROL;
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 	int MaxValue;
 	int MinValue;
@@ -211,24 +195,32 @@ typedef struct
 	int mpOffset[9];
 } PWMSETUP;
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
-	int X_off;
-	int Y_off;
-	int Z_off;
-	int X_range;
-	int Y_range;
-	int Z_range;
+
+	signed int X_MIN;
+	signed int Y_MIN;
+	signed int Z_MIN;
+	signed int X_MAX;
+	signed int Y_MAX;
+	signed int Z_MAX;
+	signed int X_off;
+	signed int Y_off;
+	signed int Z_off;
+	signed int X_range;
+	signed int Y_range;
+	signed int Z_range;
 } MM3SETUP;
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 	CYCLECONTROL CYCLE;
 	PWMSETUP PWM;
 	MM3SETUP MM3;
 }SYSTEMSETTINGS;
 
-typedef struct {
+typedef struct __attribute__ ((__aligned__))
+{
 	unsigned char 	settingNum;
 	unsigned char 	pid_X_GyroACCFactMin;
 	unsigned char 	pid_X_GyroACCFactMax;
@@ -265,7 +257,9 @@ typedef struct {
 	unsigned char	PitchSensorBias;
 	unsigned char	PitchSensorBiasNeg;
 	unsigned char	pid_GyroPitchFact;
-	unsigned char	pid_StickFact;
+	unsigned char	pid_NickStickFact;
+	unsigned char	pid_RollStickFact;
+	unsigned char	pid_HeadingHold;
 	unsigned char	pid_PitchStickFact;
 	unsigned char	pid_throttleOffset;
 	unsigned char 	pid_PitchThrottleFact;
@@ -274,22 +268,7 @@ typedef struct {
 	unsigned char	pid_PitchD;
 	unsigned char 	pid_Pitch_IntegralMax;
 	unsigned char 	pid_Pitch_IntegralMin;
-	unsigned char	pd_throttleOffset;
-	unsigned char	pd_X_P_Fact;
-	unsigned char	pd_X_D_Fact;
-	unsigned char	pd_Y_P_Fact;
-	unsigned char	pd_Y_D_Fact;
-	unsigned char	pd_X_AccX_Fact;
-	unsigned char	pd_Y_AccY_Fact;
-	unsigned char	pd_X_GyroSumFact;
-	unsigned char   pd_X_PitchSumFact;
-	unsigned char	pd_Y_GyroSumFact;
-	unsigned char   pd_Y_PitchSumFact;
-	unsigned char	pd_PitchP;
-	unsigned char	pd_PitchD;
-	unsigned char	pd_GyroPitchFact;
-	unsigned char	pd_StickFact;
-	unsigned char	pd_PitchStickFact;
+
 	unsigned char	barOn;
 	unsigned char	barChan;
 	unsigned char	barOffset;
@@ -316,7 +295,6 @@ typedef struct {
 
 	unsigned char	sysGasMin;
 	unsigned char	sysGasMax;
-	unsigned char	sysRcGasMax;
 	unsigned char	sysLowVoltage;
 	unsigned char	sysEmergencyGas;
 	unsigned char	sysEmergencyGasDuration;
@@ -330,6 +308,7 @@ typedef struct {
 	unsigned char 	telemetrieCycle;
 	unsigned char 	componentCycle;
 	unsigned char 	AdcClockDiv;
+	unsigned char	ReceiverType;
 	unsigned char	PWMMode;
 	unsigned char	BTMode;
 	unsigned char	ADCModeNick;
@@ -358,7 +337,7 @@ typedef struct {
 #define compassComponent 1
 #define gpsComponent 2
 
-typedef struct
+typedef struct __attribute__ ((__aligned__))
 {
 	INCOMINGSETTINGS settingsStore;
 	unsigned char	trash[91];
